@@ -1,9 +1,7 @@
 package Service;
 
 import Util.WriteUtil;
-import asm.VulnClassVisitor;
 import model.*;
-import org.objectweb.asm.ClassReader;
 
 import java.nio.file.Paths;
 import java.util.*;
@@ -12,10 +10,11 @@ public class SinkParseService {
     private final model.InheritanceMap InheritanceMap;
     private final Map<MethodReference.Handle, Set<MethodReference.Handle>> methodCall;
     private final Map<MethodReference.Handle, MethodReference> methodMap;
+    private final Map<String, MethodReference.Handle> MethodByNameMap = new HashMap<>();
     private final Map<ClassReference.Handle, ClassReference> classMap;
 
     private final Map<MethodReference.Handle, Set<MethodReference.Handle>> methodImplCall = new HashMap<>();
-    private Map<MethodReference.Handle, Set<CallGraph>> submethodImplCallMap;
+    private Map<MethodReference.Handle, Set<CallGraph>> submethodImplCallMap = new HashMap<>();
     private final List<List<Sink>> Sinks;
 
     public SinkParseService(InheritanceMap InheritanceMap, Map<MethodReference.Handle, Set<MethodReference.Handle>> methodCall,
@@ -28,11 +27,10 @@ public class SinkParseService {
     }
 
     public void start(){
-        submethodImplCallMap = preparemethodCall(methodMap);
+        preparemethodCall(MethodByNameMap,submethodImplCallMap,methodMap);
         doDiscover(Sinks);
     }
-    private Map<MethodReference.Handle, Set<CallGraph>> preparemethodCall(Map<MethodReference.Handle, MethodReference> methodMap){
-        Map<MethodReference.Handle, Set<CallGraph>> submethodImplCallMap = new HashMap<>();
+    private void preparemethodCall(Map<String, MethodReference.Handle> MethodByNameMap,Map<MethodReference.Handle, Set<CallGraph>> submethodImplCallMap,Map<MethodReference.Handle, MethodReference> methodMap){
         Map<MethodReference.Handle, Set<MethodReference.Handle>> methodImplMap = InheritanceService.getAllMethodImplementations(InheritanceMap, methodMap);
         WriteUtil.SavemethodImplMap(Paths.get("methodImplMap.dat"),methodImplMap);
         methodImplCall.putAll(methodCall);
@@ -51,7 +49,6 @@ public class SinkParseService {
             }
         }
 
-
         for (Map.Entry<MethodReference.Handle, Set<MethodReference.Handle>> entry: methodImplCall.entrySet()) {
             for (MethodReference.Handle TargetMethod : entry.getValue()) {
                 CallGraph callGraph = new CallGraph(TargetMethod,entry.getKey());
@@ -66,33 +63,35 @@ public class SinkParseService {
         }
 
         WriteUtil.SavecallGraphMap(Paths.get("submethodImplCallMap.dat"),submethodImplCallMap);
-        return submethodImplCallMap;
+
+        for(Map.Entry<MethodReference.Handle, Set<MethodReference.Handle>> entry:methodImplCall.entrySet()){
+            if (!MethodByNameMap.containsKey(entry.getKey().getClassReference().getName()+entry.getKey().getName()+entry.getKey().getDesc())) {
+                MethodByNameMap.put(entry.getKey().getClassReference().getName() + entry.getKey().getName() + entry.getKey().getDesc(), entry.getKey());
+                for(MethodReference.Handle method: entry.getValue() ){
+                    if(!MethodByNameMap.containsKey(method.getClassReference().getName()+method.getName()+method.getDesc())){
+                        if((method.getClassReference().getName()+method.getName()+method.getDesc()).contains("getEngineByName")){
+                            System.out.println(method.getClassReference().getName()+method.getName()+method.getDesc());
+                        }
+                        MethodByNameMap.put(method.getClassReference().getName()+method.getName()+method.getDesc(),method);
+                    }
+                }
+            }
+        }
     }
+
+
+
 
     public void doDiscover(List<List<Sink>> Sinks){
         for(List<Sink> sink : Sinks){
-            if(sink.size()==1){
-                Set<CallGraph> calls = submethodImplCallMap.get(sink.get(0));
-                if(calls!=null){
-                    System.out.println(1);
-                    for(CallGraph callGraph : calls){
-                        LinkedList<MethodReference.Handle> stack = new LinkedList<>();
-                        stack.push(callGraph.getCallerMethod());
-                        doTask(callGraph.getTargetMethod(), stack);
-                        stack.pop();
-                    }
-                }
-            }else{
-                Set<CallGraph> calls = submethodImplCallMap.get(sink.get(sink.size()-1));
-                System.out.println(calls);
-                if(calls!=null){//这里其实想要更改一下，把多个规则一起检测的，但是想了半天不知道怎么搞才好。
-                    System.out.println(2);
-                    for(CallGraph callGraph : calls){
-                        LinkedList<MethodReference.Handle> stack = new LinkedList<>();
-                        stack.push(callGraph.getCallerMethod());
-                        doTask(callGraph.getTargetMethod(), stack);
-                        stack.pop();
-                    }
+            Set<CallGraph> calls = submethodImplCallMap.get(MethodByNameMap.get(sink.get(0).getClassName()+sink.get(0).getName()+sink.get(0).getDesc()));
+            System.out.println(sink.get(0).getName());
+            if(calls!=null){
+                for(CallGraph callGraph : calls){
+                    LinkedList<MethodReference.Handle> stack = new LinkedList<>();
+                    stack.push(callGraph.getCallerMethod());
+                    doTask(callGraph.getTargetMethod(), stack);
+                    stack.pop();
                 }
             }
         }
