@@ -3,6 +3,7 @@ package asm;
 import model.ClassReference;
 import model.MethodReference;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -28,6 +29,4 @@ public class MethodCallAdapter extends MethodVisitor {
         calledMethods.add(new MethodReference.Handle(new ClassReference.Handle(owner), name, desc));
         super.visitMethodInsn(opcode, owner, name, desc, itf);
     }
-
-
 }

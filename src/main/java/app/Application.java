@@ -74,9 +74,12 @@ public class Application {
         if(command.taint==2) {
             startNoTaintParse();
         }
-        /*if(command.taint==3){
-            //parseSink(); 这里sink不是methodReference出现了错误，导致了一些问题出现
-        }*/
+        if(command.taint==3){
+            parseSink();
+        }
+        if(command.taint==4){
+            parseOnlySink();
+        }
     }
 
     public static void loadSinks(Command command){
@@ -88,10 +91,12 @@ public class Application {
                 module = "SSRF|SQLI|XXE|RCE|DOS|FileRead|JNDI|XSS|ZIPSLIP|UNSERIALIZE";
                 System.out.println("[+] 加载所有规则");
             }
+            /*
             if (module.contains("SSRF")) {
                 LoadSink.load(Sinks,SSRFconstant.getRules());
                 System.out.println("加载SSRF规则");
             }
+            */
             if (module.contains("XXE")) {
                 LoadSink.load(Sinks,XXEconstant.getRules());
                 System.out.println("[+] 加载XXE规则");
@@ -106,7 +111,7 @@ public class Application {
             }
             if (module.contains("FileRead")) {
                 LoadSink.load(Sinks,FileReadConstant.getRules());
-                System.out.println("加载FileRead规则");
+                System.out.println("[+] 加载FileRead规则");
             }
             if (module.contains("LDAP")) {
                 LoadSink.load(Sinks,LDAPinjectionConstant.getRules());
@@ -187,5 +192,9 @@ public class Application {
     private static void parseSink(){
         SinkParseService SinkParseService = new SinkParseService(InheritanceMap,methodCall,methodMap,classMap,Sinks);
         SinkParseService.start();
+    }
+    private static void parseOnlySink(){
+        onlySinkParseServerice onlySinkParseServerice = new onlySinkParseServerice(classFileByName,InheritanceMap,methodCall,methodMap,classMap,Sinks);
+        onlySinkParseServerice.start();
     }
 }

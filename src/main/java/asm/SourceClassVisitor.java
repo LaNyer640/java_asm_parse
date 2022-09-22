@@ -30,7 +30,6 @@ public class SourceClassVisitor extends ClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
         if (MethodNameIsMatch(name)) {
-            System.out.println(name);
             boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
             Sources.add(new MethodReference(
                     classHandle,
