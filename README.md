@@ -86,9 +86,9 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
 
       -m LDAP LDAP注入的规则
 
-​          -m ZIPSLIP zipslip的规则
+      -m ZIPSLIP zipslip的规则
 
-  	    -m UNSERIALIZE 反序列化漏洞的规则
+  	  -m UNSERIALIZE 反序列化漏洞的规则
 
 ​		 以上漏洞的规则大部分都是从codeql中找到的，因为知识储备有限+对于codeql代码的不熟悉，所以有些规则可能我也弄错了，如果想看一下可以再下面这里找一下。而且相对于来说，诸如FileRead和SSRF或者ZIPSLIP这一类的规则误报率会非常搞。
 
@@ -172,3 +172,6 @@ java -jar java_asm_parse.jar --jar CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE 
 ```
 
 这个功能实在是一言难尽，首先使用这个给首先的要求：sink的descriptor必须要详细给出，不能使用`*`这样的替代,其次就是得出的结果太多了一弄就是几十个结果，根本没法看。如果真的想要使用的话，可能后期得配合neo4j数据库得到cha调用图或者使用别的优化方法才能够使用。
+这里找了个老项目拿来改了一下，https://github.com/masters-info-nantes/bytecode-to-cfg
+能生成调用图了，后面命令的最后需要加一个--draw，但是生成的调用图并不好看。使用的时候需要将生成的jar文件与html文件夹放在一个目录下。
+[![xEx7y6.png](https://s1.ax1x.com/2022/09/26/xEx7y6.png)](https://imgse.com/i/xEx7y6)
