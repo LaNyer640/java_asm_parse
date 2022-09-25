@@ -16,14 +16,16 @@ public class SinkParseService {
     private final Map<MethodReference.Handle, Set<MethodReference.Handle>> methodImplCall = new HashMap<>();
     private Map<MethodReference.Handle, Set<CallGraph>> submethodImplCallMap = new HashMap<>();
     private final List<List<Sink>> Sinks;
+    private List<Deque<MethodReference.Handle>> stacks;
 
     public SinkParseService(InheritanceMap InheritanceMap, Map<MethodReference.Handle, Set<MethodReference.Handle>> methodCall,
-                                       Map<MethodReference.Handle, MethodReference> methodMap, Map<ClassReference.Handle, ClassReference> classMap, List<List<Sink>> Sinks){
+                                       Map<MethodReference.Handle, MethodReference> methodMap, Map<ClassReference.Handle, ClassReference> classMap, List<List<Sink>> Sinks,List<Deque<MethodReference.Handle>> stacks){
         this.InheritanceMap = InheritanceMap;
         this.methodCall = methodCall;
         this.methodMap = methodMap;
         this.classMap = classMap;
         this.Sinks = Sinks;
+        this.stacks = stacks;
     }
 
     public void start(){
@@ -69,9 +71,6 @@ public class SinkParseService {
                 MethodByNameMap.put(entry.getKey().getClassReference().getName() + entry.getKey().getName() + entry.getKey().getDesc(), entry.getKey());
                 for(MethodReference.Handle method: entry.getValue() ){
                     if(!MethodByNameMap.containsKey(method.getClassReference().getName()+method.getName()+method.getDesc())){
-                        if((method.getClassReference().getName()+method.getName()+method.getDesc()).contains("getEngineByName")){
-                            System.out.println(method.getClassReference().getName()+method.getName()+method.getDesc());
-                        }
                         MethodByNameMap.put(method.getClassReference().getName()+method.getName()+method.getDesc(),method);
                     }
                 }
@@ -85,7 +84,6 @@ public class SinkParseService {
     public void doDiscover(List<List<Sink>> Sinks){
         for(List<Sink> sink : Sinks){
             Set<CallGraph> calls = submethodImplCallMap.get(MethodByNameMap.get(sink.get(0).getClassName()+sink.get(0).getName()+sink.get(0).getDesc()));
-            System.out.println(sink.get(0).getName());
             if(calls!=null){
                 for(CallGraph callGraph : calls){
                     LinkedList<MethodReference.Handle> stack = new LinkedList<>();
@@ -106,7 +104,9 @@ public class SinkParseService {
         stack.push(targetMethod);
         Set<CallGraph> calls = submethodImplCallMap.get(targetMethod);
         if (calls == null || calls.size() == 0) {
-            printStackTrace(stack);
+            Deque<MethodReference.Handle> copyStack = new LinkedList<>(stack);
+            this.stacks.add(copyStack);
+            //printStackTrace(stack);
             return;
         }
         for (CallGraph callGraph : calls) {

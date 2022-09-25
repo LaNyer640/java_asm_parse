@@ -64,7 +64,7 @@ public class onlySinkParseServerice {
         for(List<Sink> sink : Sinks){
             for(Map.Entry<MethodReference.Handle, Set<MethodReference.Handle>> entry:methodImplCall.entrySet()) {
                 for (MethodReference.Handle method : entry.getValue()) {
-                    if (sink.size() == 1 && isFirstSink(sink, method)) {
+                    if (sink.size() == 1 && isFirstSink(sink, method)&&!entry.getKey().getClassReference().getName().equals(sink.get(0).getClassName())) {
                         System.out.println("["+VulnNumber+"] detect vuln: " + sink.get(0).getSinkName()+"  Name: "+sink.get(0).getName());
                         System.out.println("location is:"+entry.getKey().getClassReference().getName()+":"+entry.getKey().getName());
                         System.out.println();
@@ -75,7 +75,7 @@ public class onlySinkParseServerice {
                         VulnClassVisitor dcv = new VulnClassVisitor(entry.getKey(), sink);
                         ClassReader cr = new ClassReader(file.getFile());
                         cr.accept(dcv, ClassReader.EXPAND_FRAMES);
-                        if (dcv.getVulnFlag() == sink.size()) {
+                        if (dcv.getVulnFlag() == sink.size()&&!entry.getKey().getClassReference().getName().equals(sink.get(0).getClassName())) {
                             System.out.println("["+VulnNumber+"] detect vuln: " + sink.get(0).getSinkName()+"  Name: "+sink.get(0).getName());
                             System.out.println("location is:"+entry.getKey().getClassReference().getName()+":"+entry.getKey().getName());
                             System.out.println();

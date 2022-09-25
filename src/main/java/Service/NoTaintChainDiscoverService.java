@@ -20,9 +20,10 @@ public class NoTaintChainDiscoverService {
     private final List<MethodReference> Sources;
 
     private final List<List<Sink>> Sinks;
+    private final List<Deque<MethodReference.Handle>> stacks;
 
     public NoTaintChainDiscoverService(Map<String, ClassFile> classFileByName, InheritanceMap InheritanceMap, Map<MethodReference.Handle, Set<MethodReference.Handle>> methodCall,
-                                Map<MethodReference.Handle, MethodReference> methodMap, Map<ClassReference.Handle, ClassReference> classMap, List<MethodReference> Sources, List<List<Sink>> Sinks){
+                                Map<MethodReference.Handle, MethodReference> methodMap, Map<ClassReference.Handle, ClassReference> classMap, List<MethodReference> Sources, List<List<Sink>> Sinks,List<Deque<MethodReference.Handle>> stacks){
         this.classFileByName = classFileByName;
         this.InheritanceMap = InheritanceMap;
         this.methodCall = methodCall;
@@ -30,6 +31,7 @@ public class NoTaintChainDiscoverService {
         this.classMap =classMap;
         this.Sources = Sources;
         this.Sinks = Sinks;
+        this.stacks = stacks;
     }
 
     public void start(){
@@ -103,6 +105,8 @@ public class NoTaintChainDiscoverService {
         stack.push(targetMethod);
         if (sinks.size() == 1 && isFirstSink(sinks, targetMethod)) {
             System.out.println("[+] detect vuln: " + sinks.get(0).getName());
+            Deque<MethodReference.Handle> copyStack = new LinkedList<>(stack);
+            stacks.add(copyStack);
             printStackTrace(stack);
         }
         if (sinks.size() != 1 && isFirstSink(sinks, targetMethod)) {
@@ -120,6 +124,8 @@ public class NoTaintChainDiscoverService {
                     }
                 }*/
                 System.out.println("[+] detect vuln: " + sinks.get(0).getName());
+                Deque<MethodReference.Handle> copyStack = new LinkedList<>(stack);
+                stacks.add(copyStack);
                 printStackTrace(stack);
                 /*for (int s = 1; s == sinks.size(); s++) {
                     stack.pop();

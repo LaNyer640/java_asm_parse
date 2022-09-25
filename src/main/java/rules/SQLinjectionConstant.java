@@ -1,8 +1,5 @@
 package rules;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class SQLinjectionConstant  {
     private static final String[][] rules = new String[][]{
             {"INVOKEVIRTUAL","org/springframework/jdbc/core/JdbcTemplate","update","*","sqlinjection","JdbcTemplate-SQL","-1","1"},

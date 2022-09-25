@@ -1,6 +1,5 @@
 package rules;
 
-
 public class XSSconstant {
     private static final String[][] rules = new String[][]{
             {"INVOKEVIRTUAL","hudson/util/FormValidation","errorWithMarkup","*","XSS","JENKINS-PLUGIN-XSS","-1","1"},

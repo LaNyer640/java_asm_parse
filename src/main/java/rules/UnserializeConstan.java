@@ -1,11 +1,9 @@
 package rules;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class UnserializeConstan {
     private static final String[][] rules = new String[][]{
-            //{"INVOKEVIRTUAL","java/io/ObjectInputStream","readObject","*","unserialize","JAVAX-unserialize"},
+            {"INVOKEVIRTUAL","java/io/ObjectInputStream","readObject","*","unserialize","JAVAX-unserialize","-1","1"},
             {"INVOKEVIRTUAL", "org/yaml/snakeyaml/Yaml", "load", "*", "unserialize", "SNAKEYAML-unserialize","-1","1"},
             {"INVOKEVIRTUAL", "org/yaml/snakeyaml/Yaml", "compose", "*", "unserialize", "SNAKEYAML-unserialize","-1","1"},
             {"INVOKEVIRTUAL", "org/yaml/snakeyaml/Yaml", "composeAll", "*", "unserialize", "SNAKEYAML-unserialize","-1","1"},
@@ -30,20 +28,22 @@ public class UnserializeConstan {
 
             {"INVOKEVIRTUAL", "com/esotericsoftware/yamlbeans/YamlReader", "read", "*", "unserialize", "YamlReader-unserialize","-1","1"},
 
-            {"INVOKEVIRTUAL", "com.caucho.hessian.io.AbstractHessianInput", "readObject", "*", "unserialize", "HESSIAN-unserialize","-1","1"},
-            {"INVOKEVIRTUAL", "com.alibaba.com.caucho.hessian.io.AbstractHessianInput", "readObject", "*", "unserialize", "HESSIAN-unserialize","-1","1"},
-            {"INVOKEVIRTUAL", "com.caucho.hessian.io.Hessian2StreamingInput", "readObject", "*", "unserialize", "HESSIAN-unserialize","-1","1"},
-            {"INVOKEVIRTUAL", "com.alibaba.com.caucho.hessian.io.Hessian2StreamingInput", "readObject", "*", "unserialize", "HESSIAN-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "com/caucho/hessian/io.AbstractHessianInput", "readObject", "*", "unserialize", "HESSIAN-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "com/alibaba/com/caucho/hessian/io/AbstractHessianInput", "readObject", "*", "unserialize", "HESSIAN-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "com/caucho/hessian/io/Hessian2StreamingInput", "readObject", "*", "unserialize", "HESSIAN-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "com/alibaba/com/caucho/hessian/io/Hessian2StreamingInput", "readObject", "*", "unserialize", "HESSIAN-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "com/caucho/hessian/io/Hessian2Input", "readObject", "*", "unserialize", "HESSIAN-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "com/alibaba/com/caucho/hessian/io/Hessian2Input", "readObject", "*", "unserialize", "HESSIAN-unserialize","-1","1"},
 
-            {"INVOKEVIRTUAL", "org.exolab.castor.xml.Unmarshaller", "unmarshal", "*", "unserialize", "exolab-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "org/exolab/castor/xml/Unmarshaller", "unmarshal", "*", "unserialize", "exolab-unserialize","-1","1"},
 
-            {"INVOKEVIRTUAL", "org.jabsorb.JSONSerializer", "unmarshall", "*", "unserialize", "jabsorb-unserialize","-1","1"},
-            {"INVOKEVIRTUAL", "org.jabsorb.JSONSerializer", "fromJSON", "*", "unserialize", "jabsorb-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "org/jabsorb/JSONSerializer", "unmarshall", "*", "unserialize", "jabsorb-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "org/jabsorb/JSONSerializer", "fromJSON", "*", "unserialize", "jabsorb-unserialize","-1","1"},
 
-            {"INVOKEVIRTUAL", "com.google.gson.Gson", "fromJson", "*", "unserialize", "Gson-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "com/google/gson/Gson", "fromJson", "*", "unserialize", "Gson-unserialize","-1","1"},
 
-            {"INVOKEVIRTUAL", "org.apache.commons.lang.RandomStringUtils", "deserialize", "*", "unserialize", "lang-unserialize","-1","1"},
-            {"INVOKEVIRTUAL", "org.apache.commons.lang3.RandomStringUtils", "deserialize", "*", "unserialize", "lang-unserialize","-1","1"}
+            {"INVOKEVIRTUAL", "org/apache/commons/lang/RandomStringUtils", "deserialize", "*", "unserialize", "lang-unserialize","-1","1"},
+            {"INVOKEVIRTUAL", "org/apache/commons/lang3/RandomStringUtils", "deserialize", "*", "unserialize", "lang-unserialize","-1","1"}
     };
     public static String[][] getRules(){
         return rules;

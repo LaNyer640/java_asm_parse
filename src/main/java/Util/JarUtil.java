@@ -80,9 +80,8 @@ public class JarUtil {
             resolve(jarPath, tmpDir);
             if (useAllLib) {
                 resolveBoot(jarPath, tmpDir);
-                if(Files.exists(tmpDir.resolve("WEB-INF/lib"))){
-                    Files.list(tmpDir.resolve("WEB-INF/lib")).forEach(p ->
-                            resolveJarFile(p.toFile().getAbsolutePath()));
+                if(Files.exists(tmpDir)){
+                    allfile(tmpDir.toFile());
                 }
             }
             return new ArrayList<>(classFileSet);
@@ -116,5 +115,19 @@ public class JarUtil {
         }
     }
 
+
+    public static void allfile(File file) {
+        File[] files = file.listFiles();
+        if(files!=null && files.length>0) {
+            for(File temp:files) {
+                //如果文件是一个目录时则递归
+                if(temp.isDirectory()) {
+                    allfile(temp);
+                }else if(temp.getAbsoluteFile().getName().endsWith(".jar")){
+                    resolveJarFile(temp.getAbsolutePath());
+                }
+            }
+        }
+    }
 }
 

@@ -7,7 +7,7 @@ import java.util.List;
 
 public class LoadSink {
     public static void load(List<List<Sink>> Sinks, String[][] SinkRule){
-        for(int i=0;i<SinkRule.length;i++){
+        for(int i=0;i<SinkRule.length-1;i++){
             if(Integer.parseInt(SinkRule[i][7])!=1){
                 List ruleList = new ArrayList();
                 for(int j=0;j<Integer.parseInt(SinkRule[i][7]);j++){

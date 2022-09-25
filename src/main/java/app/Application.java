@@ -30,6 +30,8 @@ public class Application {
 
     private static final List<List<Sink>> Sinks = new ArrayList<>();
 
+    private static final List<Deque<MethodReference.Handle>> stacks = new ArrayList<>();
+
     public static void run(String[] args) throws IOException {
         Command command = new Command();
         JCommander jc = JCommander.newBuilder().addObject(command).build();
@@ -79,6 +81,9 @@ public class Application {
         }
         if(command.taint==4){
             parseOnlySink();
+        }
+        if(command.draw == true){
+            startdraw();
         }
     }
 
@@ -185,16 +190,19 @@ public class Application {
     }
 
     private static void startNoTaintParse(){
-        NoTaintChainDiscoverService NoTaintChainDiscoverService = new NoTaintChainDiscoverService(classFileByName,InheritanceMap,methodCall,methodMap,classMap,Sources,Sinks);
+        NoTaintChainDiscoverService NoTaintChainDiscoverService = new NoTaintChainDiscoverService(classFileByName,InheritanceMap,methodCall,methodMap,classMap,Sources,Sinks,stacks);
         NoTaintChainDiscoverService.start();
     }
 
     private static void parseSink(){
-        SinkParseService SinkParseService = new SinkParseService(InheritanceMap,methodCall,methodMap,classMap,Sinks);
+        SinkParseService SinkParseService = new SinkParseService(InheritanceMap,methodCall,methodMap,classMap,Sinks,stacks);
         SinkParseService.start();
     }
     private static void parseOnlySink(){
         onlySinkParseServerice onlySinkParseServerice = new onlySinkParseServerice(classFileByName,InheritanceMap,methodCall,methodMap,classMap,Sinks);
         onlySinkParseServerice.start();
+    }
+    private static void startdraw() throws IOException {
+        DarwService.start(stacks);
     }
 }
