@@ -34,7 +34,7 @@ public class DarwService {
             for(MethodReference.Handle method : stack){
                 if(!idList.contains(method.hashCode())){
                     idList.add(method.hashCode());
-                    nfile.write("nodes.push({ id: " + method.hashCode()+ ", label: String(\"" + method.getName() + "\"), title: String(\"" + method.getClassReference() + "\") });\n");
+                    nfile.write("nodes.push({ id: " + method.hashCode()+ ", label: String(\"" + method.getName() + "\"), title: String(\"" + method.getClassReference().getName() + "\") });\n");
                 }
             }
         }

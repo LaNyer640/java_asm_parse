@@ -63,24 +63,28 @@ public class onlySinkParseServerice {
     public void doDiscover(List<List<Sink>> Sinks){
         for(List<Sink> sink : Sinks){
             for(Map.Entry<MethodReference.Handle, Set<MethodReference.Handle>> entry:methodImplCall.entrySet()) {
+                List<MethodReference.Handle> VistedMethods = new ArrayList<>();
                 for (MethodReference.Handle method : entry.getValue()) {
-                    if (sink.size() == 1 && isFirstSink(sink, method)&&!entry.getKey().getClassReference().getName().equals(sink.get(0).getClassName())) {
-                        System.out.println("["+VulnNumber+"] detect vuln: " + sink.get(0).getSinkName()+"  Name: "+sink.get(0).getName());
-                        System.out.println("location is:"+entry.getKey().getClassReference().getName()+":"+entry.getKey().getName());
-                        System.out.println();
-                        VulnNumber++;
-                    }
-                    if (sink.size() != 1 && isFirstSink(sink, method)) {
-                        ClassFile file = classFileByName.get(entry.getKey().getClassReference().getName());
-                        VulnClassVisitor dcv = new VulnClassVisitor(entry.getKey(), sink);
-                        ClassReader cr = new ClassReader(file.getFile());
-                        cr.accept(dcv, ClassReader.EXPAND_FRAMES);
-                        if (dcv.getVulnFlag() == sink.size()&&!entry.getKey().getClassReference().getName().equals(sink.get(0).getClassName())) {
-                            System.out.println("["+VulnNumber+"] detect vuln: " + sink.get(0).getSinkName()+"  Name: "+sink.get(0).getName());
-                            System.out.println("location is:"+entry.getKey().getClassReference().getName()+":"+entry.getKey().getName());
+                    if(!VistedMethods.contains(method)) {
+                        if (sink.size() == 1 && isFirstSink(sink, method) && !entry.getKey().getClassReference().getName().equals(sink.get(0).getClassName())) {
+                            System.out.println("[" + VulnNumber + "] detect vuln: " + sink.get(0).getSinkName() + "  Name: " + sink.get(0).getName());
+                            System.out.println("location is:" + entry.getKey().getClassReference().getName() + ":" + entry.getKey().getName());
                             System.out.println();
                             VulnNumber++;
                         }
+                        if (sink.size() != 1 && isFirstSink(sink, method)) {
+                            ClassFile file = classFileByName.get(entry.getKey().getClassReference().getName());
+                            VulnClassVisitor dcv = new VulnClassVisitor(entry.getKey(), sink);
+                            ClassReader cr = new ClassReader(file.getFile());
+                            cr.accept(dcv, ClassReader.EXPAND_FRAMES);
+                            if (dcv.getVulnFlag() == sink.size() && !entry.getKey().getClassReference().getName().equals(sink.get(0).getClassName())) {
+                                System.out.println("[" + VulnNumber + "] detect vuln: " + sink.get(0).getSinkName() + "  Name: " + sink.get(0).getName());
+                                System.out.println("location is:" + entry.getKey().getClassReference().getName() + ":" + entry.getKey().getName());
+                                System.out.println();
+                                VulnNumber++;
+                            }
+                        }
+                        VistedMethods.add(method);
                     }
                 }
             }

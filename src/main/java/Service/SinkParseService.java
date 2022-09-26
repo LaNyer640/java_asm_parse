@@ -10,13 +10,15 @@ public class SinkParseService {
     private final model.InheritanceMap InheritanceMap;
     private final Map<MethodReference.Handle, Set<MethodReference.Handle>> methodCall;
     private final Map<MethodReference.Handle, MethodReference> methodMap;
-    private final Map<String, MethodReference.Handle> MethodByNameMap = new HashMap<>();
+    private final Map<Integer, MethodReference.Handle> MethodByNameMap = new HashMap<>();
     private final Map<ClassReference.Handle, ClassReference> classMap;
 
     private final Map<MethodReference.Handle, Set<MethodReference.Handle>> methodImplCall = new HashMap<>();
     private Map<MethodReference.Handle, Set<CallGraph>> submethodImplCallMap = new HashMap<>();
     private final List<List<Sink>> Sinks;
     private List<Deque<MethodReference.Handle>> stacks;
+    private HashMap<Integer,Integer> hashcodeMap = new HashMap<>();
+    private int hashCode;
 
     public SinkParseService(InheritanceMap InheritanceMap, Map<MethodReference.Handle, Set<MethodReference.Handle>> methodCall,
                                        Map<MethodReference.Handle, MethodReference> methodMap, Map<ClassReference.Handle, ClassReference> classMap, List<List<Sink>> Sinks,List<Deque<MethodReference.Handle>> stacks){
@@ -32,7 +34,7 @@ public class SinkParseService {
         preparemethodCall(MethodByNameMap,submethodImplCallMap,methodMap);
         doDiscover(Sinks);
     }
-    private void preparemethodCall(Map<String, MethodReference.Handle> MethodByNameMap,Map<MethodReference.Handle, Set<CallGraph>> submethodImplCallMap,Map<MethodReference.Handle, MethodReference> methodMap){
+    private void preparemethodCall(Map<Integer, MethodReference.Handle> MethodByNameMap,Map<MethodReference.Handle, Set<CallGraph>> submethodImplCallMap,Map<MethodReference.Handle, MethodReference> methodMap){
         Map<MethodReference.Handle, Set<MethodReference.Handle>> methodImplMap = InheritanceService.getAllMethodImplementations(InheritanceMap, methodMap);
         WriteUtil.SavemethodImplMap(Paths.get("methodImplMap.dat"),methodImplMap);
         methodImplCall.putAll(methodCall);
@@ -66,12 +68,16 @@ public class SinkParseService {
 
         WriteUtil.SavecallGraphMap(Paths.get("submethodImplCallMap.dat"),submethodImplCallMap);
 
+
         for(Map.Entry<MethodReference.Handle, Set<MethodReference.Handle>> entry:methodImplCall.entrySet()){
-            if (!MethodByNameMap.containsKey(entry.getKey().getClassReference().getName()+entry.getKey().getName()+entry.getKey().getDesc())) {
-                MethodByNameMap.put(entry.getKey().getClassReference().getName() + entry.getKey().getName() + entry.getKey().getDesc(), entry.getKey());
+            if (!MethodByNameMap.containsKey(entry.getKey().hashCode())) {
+                hashcodeMap.put(entry.getKey().hashCode()-entry.getKey().getDesc().hashCode(),entry.getKey().hashCode());
+                MethodByNameMap.put(entry.getKey().hashCode(), entry.getKey());
                 for(MethodReference.Handle method: entry.getValue() ){
-                    if(!MethodByNameMap.containsKey(method.getClassReference().getName()+method.getName()+method.getDesc())){
-                        MethodByNameMap.put(method.getClassReference().getName()+method.getName()+method.getDesc(),method);
+                    if(!MethodByNameMap.containsKey(method.hashCode())){
+                        MethodByNameMap.put(method.hashCode(),method);
+                        hashcodeMap.put(method.hashCode()-method.getDesc().hashCode(),method.hashCode());
+
                     }
                 }
             }
@@ -83,13 +89,27 @@ public class SinkParseService {
 
     public void doDiscover(List<List<Sink>> Sinks){
         for(List<Sink> sink : Sinks){
-            Set<CallGraph> calls = submethodImplCallMap.get(MethodByNameMap.get(sink.get(0).getClassName()+sink.get(0).getName()+sink.get(0).getDesc()));
-            if(calls!=null){
-                for(CallGraph callGraph : calls){
-                    LinkedList<MethodReference.Handle> stack = new LinkedList<>();
-                    stack.push(callGraph.getCallerMethod());
-                    doTask(callGraph.getTargetMethod(), stack);
-                    stack.pop();
+            if(sink.get(0).getDesc().equals("*")&&hashcodeMap.containsKey(sink.get(0).hashCode()-sink.get(0).getDesc().hashCode())){
+                hashCode = this.hashcodeMap.get(sink.get(0).hashCode()-sink.get(0).getDesc().hashCode());
+                Set<CallGraph> calls = submethodImplCallMap.get(MethodByNameMap.get(hashCode));
+                if(calls!=null){
+                    for(CallGraph callGraph : calls){
+                        LinkedList<MethodReference.Handle> stack = new LinkedList<>();
+                        stack.push(callGraph.getCallerMethod());
+                        doTask(callGraph.getTargetMethod(), stack);
+                        stack.pop();
+                    }
+                }
+            }else if(!sink.get(0).getDesc().equals("*")){
+                hashCode = sink.get(0).hashCode();
+                Set<CallGraph> calls = submethodImplCallMap.get(MethodByNameMap.get(hashCode));
+                if(calls!=null){
+                    for(CallGraph callGraph : calls){
+                        LinkedList<MethodReference.Handle> stack = new LinkedList<>();
+                        stack.push(callGraph.getCallerMethod());
+                        doTask(callGraph.getTargetMethod(), stack);
+                        stack.pop();
+                    }
                 }
             }
         }
@@ -106,7 +126,7 @@ public class SinkParseService {
         if (calls == null || calls.size() == 0) {
             Deque<MethodReference.Handle> copyStack = new LinkedList<>(stack);
             this.stacks.add(copyStack);
-            //printStackTrace(stack);
+            printStackTrace(stack);
             return;
         }
         for (CallGraph callGraph : calls) {
@@ -121,5 +141,7 @@ public class SinkParseService {
             System.out.println(prefix+handle.getClassReference().getName()+"."+handle.getName());
             prefix.append("\t");
         }
+        System.out.println("");
+        System.out.println("");
     }
 }

@@ -36,5 +36,11 @@ public class Sink {
         return this.flag;
     }
 
-
+    @Override
+    public int hashCode() {
+        int result = ClassName != null ? ClassName.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (desc != null ? desc.hashCode() : 0);
+        return result;
+    }
 }
