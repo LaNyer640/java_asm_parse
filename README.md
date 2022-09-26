@@ -47,13 +47,15 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
       【+】加载sink自定义规则
     --source
       【+】source选择
+    --draw
+      【+】画出调用图
 ```
 
 上面一一解释用法
 
 1. -t, --Taint
 
-   【+】选择模式 模式一:使用污点分析 模式二:不使用污点分析 模式三:从sink逆推调用链
+   【+】选择模式 模式一:使用污点分析 模式二:不使用污点分析 模式三:从sink逆推调用链 模式四 只分析源码中是否存在sink点
 
     -t 1 代表使用模式一，依次类推
 
@@ -104,8 +106,8 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
 
    ```
    java/lang/Runtime exec * Runtime-RCE -1 1
-   javax/script/ScriptEngineManager getEngineByName RCE Script-RCE -1 2
-   javax/script/ScriptEngine eval * RCE Script-RCE -1 2
+   javax/script/ScriptEngineManager getEngineByName * Script-RCE -1 2
+   javax/script/ScriptEngine eval * Script-RCE -1 2
    ```
 
    第一项是classname，第二项是方法名，第三项是方法的入参描述，如果不了解可以直接填`*`，第四项是规则的名字，第五项是规则中期望的危险入参是第几个，比如exec(String a)我们的危险入参是a，就填1，如果不知道是几就填-1，第六项是多规则选项。比如我们拿上面的列子，需要上面第2和第3规则都存在才能说是漏洞存在，那么我们后面都填2。如果需要三个规则，那么我们就要准备三个规则的同时后面最后一项都填3。
@@ -175,3 +177,5 @@ java -jar java_asm_parse.jar --jar CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE 
 这里找了个老项目拿来改了一下，https://github.com/masters-info-nantes/bytecode-to-cfg
 能生成调用图了，后面命令的最后需要加一个--draw，但是生成的调用图并不好看。使用的时候需要将生成的jar文件与html文件夹放在一个目录下。
 [![xEx7y6.png](https://s1.ax1x.com/2022/09/26/xEx7y6.png)](https://imgse.com/i/xEx7y6)
+
+模式四 只分析源码中是否存在sink点
