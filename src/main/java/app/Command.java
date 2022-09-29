@@ -8,8 +8,11 @@ public class Command {
     @Parameter(names = {"-h", "--help"}, description = "Help Info", help = true)
     public boolean help;
 
-    @Parameter(names = {"--jar"},description = "【+】需要扫描的jar包")
+    @Parameter(names = {"-l","--lib"},description = "【+】需要扫描的jar包")
     public List<String> jar = null;
+
+    @Parameter(names = {"-ld","--libs"},description = "【+】需要扫描的jar包")
+    public String libs= null;
 
     @Parameter(names = {"--jdk"}, description = "【+】使用jdk中的rt.jar")
     public boolean jdk;

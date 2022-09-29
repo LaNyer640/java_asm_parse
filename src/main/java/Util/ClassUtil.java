@@ -3,7 +3,6 @@ package Util;
 import model.ClassFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,4 +35,5 @@ public class ClassUtil {
         }
         classFileSet.addAll(JarUtil.resolveNormalJarFile(rtJarPath));
     }
+
 }

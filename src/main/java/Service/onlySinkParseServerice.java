@@ -67,9 +67,9 @@ public class onlySinkParseServerice {
                 for (MethodReference.Handle method : entry.getValue()) {
                     if(!VistedMethods.contains(method)) {
                         if (sink.size() == 1 && isFirstSink(sink, method) && !entry.getKey().getClassReference().getName().equals(sink.get(0).getClassName())) {
+                            System.out.println();
                             System.out.println("[" + VulnNumber + "] detect vuln: " + sink.get(0).getSinkName() + "  Name: " + sink.get(0).getName());
                             System.out.println("location is:" + entry.getKey().getClassReference().getName() + ":" + entry.getKey().getName());
-                            System.out.println();
                             VulnNumber++;
                         }
                         if (sink.size() != 1 && isFirstSink(sink, method)) {
@@ -78,9 +78,9 @@ public class onlySinkParseServerice {
                             ClassReader cr = new ClassReader(file.getFile());
                             cr.accept(dcv, ClassReader.EXPAND_FRAMES);
                             if (dcv.getVulnFlag() == sink.size() && !entry.getKey().getClassReference().getName().equals(sink.get(0).getClassName())) {
+                                System.out.println();
                                 System.out.println("[" + VulnNumber + "] detect vuln: " + sink.get(0).getSinkName() + "  Name: " + sink.get(0).getName());
                                 System.out.println("location is:" + entry.getKey().getClassReference().getName() + ":" + entry.getKey().getName());
-                                System.out.println();
                                 VulnNumber++;
                             }
                         }

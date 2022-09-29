@@ -2,6 +2,7 @@ package app;
 
 import Service.*;
 import Util.ClassUtil;
+import Util.DirUtil;
 import com.beust.jcommander.JCommander;
 import model.*;
 import rules.*;
@@ -43,7 +44,7 @@ public class Application {
         if(command.jar != null && command.jar.size() != 0){
             printConfig(command);
             start(command);
-        }else{
+        }else if (command.jar == null && command.libs ==null){
             logger.error("[-] no zips or jar input");
         }
     }
@@ -62,8 +63,8 @@ public class Application {
     }
 
     private static void start(Command command) throws IOException {
-        loadSinks(command);
         getClassFileList(command);
+        loadSinks(command);
         loadSource(command);
         getClassinfo();
         builfInheritance();
@@ -152,10 +153,15 @@ public class Application {
             LoadSource.loadsource(Sources,classFileList);
         }
     }
-    private static void getClassFileList(Command command) throws IOException {
+    private static void getClassFileList(Command command) {
         if(command.jar!=null){
             classFileList.addAll(ClassUtil.getAllClassesFromBoots(command.jar, command.jdk, command.lib));
         }
+        if(command.libs!=null){
+            List<String> libs =DirUtil.getAllFile(command.libs);
+            classFileList.addAll(ClassUtil.getAllClassesFromBoots(libs, command.jdk, command.lib));
+        }
+        System.out.println("[+] 一共分析了" +classFileList.size()+"个类");
     }
 
 

@@ -62,7 +62,7 @@ public class ChainDiscoverService {
                         tempList.add(new CallGraph(
                                 edge.getCallerMethod(),
                                 methodHandle,
-                                edge.getTargetArgIndex(),
+                                edge.getCallerArgIndex(),
                                 edge.getTargetArgIndex()
                         ));
                     }
