@@ -29,26 +29,29 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
 ```
   Options:
     -t, --Taint
-      【+】选择模式 模式一:使用污点分析 模式二:不使用污点分析 模式三:从sink逆推调用链
+      【+】选择模式 模式一:使用污点分析 模式二:不使用污点分析 模式三:从sink逆推调用链 模式四:只分析源码中是否存在sink点
       Default: 0
     --all
       【+】加载所有lib
       Default: false
+    --draw
+      【+】画出调用图
+      Default: false
     -h, --help
       Help Info
-    --jar
-      【+】需要扫描的jar包
     --jdk
       【+】使用jdk中的rt.jar
       Default: false
+    -l, --lib
+      【+】需要扫描的jar包
+    -ld, --libs
+      【+】需要扫描的jar包所在文件夹
     -m, --moudles
       【+】选择sink规则
     -r, --rule
       【+】加载sink自定义规则
     --source
       【+】source选择
-    --draw
-      【+】画出调用图
 ```
 
 上面一一解释用法
@@ -63,14 +66,18 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
    【+】加载所有lib
      填上这个选项后会加载jar中的所有依赖的jar包
 
-3. --jar
+3. -l, --lib
    【+】需要扫描的jar包
-    这里可以填上需要扫描的jar包,列如 --jar 1.jar 2.jar 但是需要值得注意的是如果遇到1.jar中有com.test.Main这个类，并且2.jar中也有的时候会出现一些问题。
+    这里可以填上需要扫描的jar包,列如 -l 1.jar 2.jar 但是需要值得注意的是如果遇到1.jar中有com.test.Main这个类，并且2.jar中也有的时候会出现一些问题。
 
-4. --jdk
+4. -ld, --libs
+   【+】需要扫描的jar包
+    这里可以填上需要扫描的jar包,列如 -l 1.jar 2.jar 但是需要值得注意的是如果遇到1.jar中有com.test.Main这个类，并且2.jar中也有的时候会出现一些问题。
+
+5. --jdk
    【+】使用jdk中的rt.jar
 
-5. -m, --moudles
+6. -m, --moudles
    【+】选择sink规则
      现在已经有 11 种规则
      使用 -m all 是加载所有规则
@@ -98,7 +105,7 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
 
 ​	当然也可以去codeql找自带的cwe规则      
 
-6. -r, --rule
+7. -r, --rule
 
    【+】加载sink自定义规则
 
@@ -145,9 +152,9 @@ java -jar java_asm_parse.jar --jar CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE 
 
 没有得到结果，跟踪分析了一下
 
-发现污点在resolve这里断掉了
+发现数据流在，数组这里断掉了，很奇怪，做了很多测试。显示数组应该不会影响污点的传递，但是不知道为什么这里会断掉。
 
-![image-20220918210742476.png](https://img1.imgtp.com/2022/09/18/VmS0OcHf.png)
+![DJUPJ9DF[G02S7H%ZL3X6_G.png](https://s2.loli.net/2022/09/29/n1rftaxs4pgHho2.png)
 
 后面再研究一下。这里先留着这个问题
 
