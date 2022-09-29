@@ -11,7 +11,7 @@ public class Command {
     @Parameter(names = {"-l","--lib"},description = "【+】需要扫描的jar包")
     public List<String> jar = null;
 
-    @Parameter(names = {"-ld","--libs"},description = "【+】需要扫描的jar包")
+    @Parameter(names = {"-ld","--libs"},description = "【+】需要扫描的jar包所在文件夹")
     public String libs= null;
 
     @Parameter(names = {"--jdk"}, description = "【+】使用jdk中的rt.jar")
