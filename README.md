@@ -154,7 +154,7 @@ java -jar java_asm_parse.jar --jar CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE 
 
 发现数据流在，数组这里断掉了，很奇怪，做了很多测试。显示数组应该不会影响污点的传递，但是不知道为什么这里会断掉。
 
-![DJUPJ9DF[G02S7H%ZL3X6_G.png](https://s2.loli.net/2022/09/29/n1rftaxs4pgHho2.png)
+![1.png](https://s2.loli.net/2022/09/29/n1rftaxs4pgHho2.png)
 
 后面再研究一下。这里先留着这个问题
 
