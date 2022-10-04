@@ -138,26 +138,33 @@ public class ChainDiscoverService {
             return;
         }
         stack.push(targetMethod);
-        if(sinks.size()==1&&isFirstSink(sinks,targetMethod,targetIndex)){
-            System.out.println("[+] detect vuln: " + sinks.get(0).getSinkName());
+        if (sinks.size() == 1 && isFirstSink(sinks, targetMethod,targetIndex)) {
+            System.out.println("[+] detect vuln: " + sinks.get(0).getName());
             printStackTrace(stack);
-            System.out.println();
-            System.out.println();
         }
-        if(sinks.size()!=1&&isFirstSink(sinks,targetMethod,targetIndex)){
+        if (sinks.size() != 1 && isFirstSink(sinks, targetMethod,targetIndex)) {
             ClassFile file = classFileByName.get(callerMethod.getClassReference().getName());
-            VulnClassVisitor dcv = new VulnClassVisitor(callerMethod,sinks);
+            VulnClassVisitor dcv = new VulnClassVisitor(callerMethod, sinks);
             ClassReader cr = new ClassReader(file.getFile());
             cr.accept(dcv, ClassReader.EXPAND_FRAMES);
-            if(dcv.getVulnFlag()==sinks.size()){
-                System.out.println("[+] detect vuln: " + sinks.get(0).getSinkName());
+            if (dcv.getVulnFlag() == sinks.size()) {
+                /*Set<MethodReference.Handle> stackpushmethod = methodImplCall.get(callerMethod);
+                for (int s = 1; s < sinks.size(); s++) {
+                    for (MethodReference.Handle a : stackpushmethod) {
+                        if ((a.getClassReference().getName() + a.getName()).equals(sinks.get(s).getClassName() + sinks.get(s).getName())) {
+                            stack.push(a);
+                        }
+                    }
+                }*/
+                System.out.println("[+] detect vuln: " + sinks.get(0).getName());
                 printStackTrace(stack);
-                System.out.println();
-                System.out.println();
+                /*for (int s = 1; s == sinks.size(); s++) {
+                    stack.pop();
+                }*/
                 return;
             }
-
         }
+
         Set<CallGraph> calls = callGraphMap.get(targetMethod);
         if (calls == null || calls.size() == 0) {
             return;
@@ -169,6 +176,7 @@ public class ChainDiscoverService {
             }
         }
     }
+
     private void printStackTrace(Deque<MethodReference.Handle> stack) {
         Deque<MethodReference.Handle> copyStack = new LinkedList<>(stack);
         StringBuilder prefix=new StringBuilder("\t");
@@ -176,6 +184,8 @@ public class ChainDiscoverService {
             System.out.println(prefix+handle.getClassReference().getName()+"."+handle.getName());
             prefix.append("\t");
         }
+        System.out.println();
+        System.out.println();
     }
 
     public boolean isFirstSink(List<Sink> sinks,MethodReference.Handle targetMethod,int targetIndex){
@@ -183,11 +193,10 @@ public class ChainDiscoverService {
                 " SinkClass:"+sinks.get(0).getClassName()+"targetMethodClass:"+targetMethod.getClassReference().getName()+ "sinkDec:"+sinks.get(0).getDesc()
         +" sinkTarget:Index:"+ sinks.get(0).getTargetIndex());*/
         if(sinks.get(0).getName().equals(targetMethod.getName())&&sinks.get(0).getClassName().equals(targetMethod.getClassReference().getName())&&
-                (sinks.get(0).getDesc().equals(targetMethod)||sinks.get(0).getDesc().equals("*"))&&
-                (targetIndex==sinks.get(0).getTargetIndex()||sinks.get(0).getTargetIndex()==-1)){
+                (sinks.get(0).getDesc().equals(targetMethod.getDesc())||sinks.get(0).getDesc().equals("*"))&&
+                (sinks.get(0).getTargetIndex()==-1||targetIndex==sinks.get(0).getTargetIndex())){
             return true;
         }
         return false;
     }
-
 }

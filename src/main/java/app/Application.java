@@ -33,6 +33,8 @@ public class Application {
 
     private static final List<Deque<MethodReference.Handle>> stacks = new ArrayList<>();
 
+    private static final Map<String,String> jarByClass = new HashMap<>();
+
     public static void run(String[] args) throws IOException {
         Command command = new Command();
         JCommander jc = JCommander.newBuilder().addObject(command).build();
@@ -41,7 +43,7 @@ public class Application {
             jc.usage();
             return;
         }
-        if(command.jar != null && command.jar.size() != 0){
+        if((command.jar != null && command.jar.size() != 0)||(command.libs!=null)){
             printConfig(command);
             start(command);
         }else if (command.jar == null && command.libs ==null){
@@ -60,10 +62,18 @@ public class Application {
                 System.out.println("[+] Use All Libs In jar");
             }
         }
+        if(command.libs != null){
+            System.out.print("[+] libs director: ");
+            System.out.print(command.libs + " ");
+            System.out.println();
+            if (command.lib) {
+                System.out.println("[+] Use All Libs In jar");
+            }
+        }
     }
 
     private static void start(Command command) throws IOException {
-        getClassFileList(command);
+        getClassFileList(command,jarByClass);
         loadSinks(command);
         loadSource(command);
         getClassinfo();
@@ -81,6 +91,8 @@ public class Application {
             parseSink();
         }
         if(command.taint==4){
+            buildPassthrough();
+            buildCallGraph();
             parseOnlySink();
         }
         if(command.draw == true){
@@ -97,12 +109,11 @@ public class Application {
                 module = "SSRF|SQLI|XXE|RCE|DOS|FileRead|JNDI|XSS|ZIPSLIP|UNSERIALIZE";
                 System.out.println("[+] 加载所有规则");
             }
-            /*
+
             if (module.contains("SSRF")) {
                 LoadSink.load(Sinks,SSRFconstant.getRules());
                 System.out.println("加载SSRF规则");
             }
-            */
             if (module.contains("XXE")) {
                 LoadSink.load(Sinks,XXEconstant.getRules());
                 System.out.println("[+] 加载XXE规则");
@@ -153,13 +164,13 @@ public class Application {
             LoadSource.loadsource(Sources,classFileList);
         }
     }
-    private static void getClassFileList(Command command) {
+    private static void getClassFileList(Command command,Map jarByClass) {
         if(command.jar!=null){
-            classFileList.addAll(ClassUtil.getAllClassesFromBoots(command.jar, command.jdk, command.lib));
+            classFileList.addAll(ClassUtil.getAllClassesFromBoots(command.jar, command.jdk, command.lib,jarByClass));
         }
         if(command.libs!=null){
             List<String> libs =DirUtil.getAllFile(command.libs);
-            classFileList.addAll(ClassUtil.getAllClassesFromBoots(libs, command.jdk, command.lib));
+            classFileList.addAll(ClassUtil.getAllClassesFromBoots(libs, command.jdk, command.lib,jarByClass));
         }
         System.out.println("[+] 一共分析了" +classFileList.size()+"个类");
     }
@@ -205,7 +216,7 @@ public class Application {
         SinkParseService.start();
     }
     private static void parseOnlySink(){
-        onlySinkParseServerice onlySinkParseServerice = new onlySinkParseServerice(classFileByName,InheritanceMap,methodCall,methodMap,classMap,Sinks);
+        onlySinkParseServerice onlySinkParseServerice = new onlySinkParseServerice(classFileByName,InheritanceMap,discoveredCalls,methodMap,classMap,Sinks,jarByClass);
         onlySinkParseServerice.start();
     }
     private static void startdraw() throws IOException {

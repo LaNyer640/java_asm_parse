@@ -56,28 +56,28 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
 
 上面一一解释用法
 
-1. -t, --Taint
+1. **-t, --Taint**
 
    【+】选择模式 模式一:使用污点分析 模式二:不使用污点分析 模式三:从sink逆推调用链 模式四 只分析源码中是否存在sink点
 
-    -t 1 代表使用模式一，依次类推
+    -t 1 代表使用模式一，依此类推
 
-2. --all
+2. **--all**
    【+】加载所有lib
      填上这个选项后会加载jar中的所有依赖的jar包
 
-3. -l, --lib
+3. **-l, --lib**
    【+】需要扫描的jar包
     这里可以填上需要扫描的jar包,列如 -l 1.jar 2.jar 但是需要值得注意的是如果遇到1.jar中有com.test.Main这个类，并且2.jar中也有的时候会出现一些问题。
 
-4. -ld, --libs
+4. **-ld, --libs**
    【+】需要扫描的jar包
     这里可以填上需要扫描的jar包,列如 -l 1.jar 2.jar 但是需要值得注意的是如果遇到1.jar中有com.test.Main这个类，并且2.jar中也有的时候会出现一些问题。
 
-5. --jdk
+5. **--jdk**
    【+】使用jdk中的rt.jar
 
-6. -m, --moudles
+6. **-m, --moudles**
    【+】选择sink规则
      现在已经有 11 种规则
      使用 -m all 是加载所有规则
@@ -105,7 +105,7 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
 
 ​	当然也可以去codeql找自带的cwe规则      
 
-7. -r, --rule
+7. **-r, --rule**
 
    【+】加载sink自定义规则
 
@@ -121,11 +121,13 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
 
    储存在txt文件中，使用-r 1.txt
 
-7. --source
+7. **--source**
 
    【+】source选择
      因为这里还没有设置一些source，我这里设置source因为不像前面几个师傅们一样专注于spring-web，所以我这里直接使用了正则匹配方法名来设置，这里设置了专门匹配do开头后面接一个大写字母，然后任意字母这样的规则，比如doMain这样的方法来收集source。这样确实很简陋，但是可以一步步改进，后面弄个，从外部接受规则？
 
+   现在如果想要使用的话，还是需要自己去源码中的`SourceClassVisitor` 自行更改正则规则
+   
    - ![image-20220918205554347.png](https://img1.imgtp.com/2022/09/18/UNXNG5RE.png)
 
 ## 使用例子
@@ -141,22 +143,40 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
 环境我也会放在test文件夹中，可以自己下载测试。
 
 ```
-java -jar java_asm_parse.jar --jar CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE -t 1
+java -jar java_asm_parse-1.0-SNAPSHOT.jar -l CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE -t 1
 ```
 
 使用污点分析
 
-![image-20220918210547553.png](https://img1.imgtp.com/2022/09/18/phTOd2bj.png)
+- ![image-20221004141902126.png](https://img1.imgtp.com/2022/10/04/evsER6XP.png)
+
+得到四条链子，但是只有第一条链子有用，其余三条链子出现误报。为什么会出现这种误报？之所以会产生这种误报，主要是调用实现类无法在静态分析中直接得出，所以会在中途将该抽象类的所有实现类都遍历一遍。
 
 
 
-没有得到结果，跟踪分析了一下
+在之前版本中，使用模式一是得不到结果的。
 
-发现数据流在，数组这里断掉了，很奇怪，做了很多测试。显示数组应该不会影响污点的传递，但是不知道为什么这里会断掉。
+跟踪分析了一下
+
+发现数据流在，数组这里断掉了。
 
 ![1.png](https://s2.loli.net/2022/09/29/n1rftaxs4pgHho2.png)
 
-后面再研究一下。这里先留着这个问题
+
+
+写了一个如下列子来测试
+
+- ![1111.png](https://img1.imgtp.com/2022/10/04/9wh5aOUe.png)
+
+![222.png](https://img1.imgtp.com/2022/10/04/JGWjMy9z.png)
+
+
+
+后来改了一下模拟帧栈的核心类，AALLOAD这里，发现污点能继续传递下去了。
+
+- ![3333.png](https://img1.imgtp.com/2022/10/04/CA4eaUlO.png)
+
+
 
 
 
@@ -166,23 +186,35 @@ java -jar java_asm_parse.jar --jar CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE 
 java -jar java_asm_parse.jar --jar CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE -t 2
 ```
 
-![image-20220918211208936.png](https://img1.imgtp.com/2022/09/18/HuR9J78h.png)
+- ![image-20221004143920726.png](https://img1.imgtp.com/2022/10/04/VXn9iMbd.png)
 
-这次倒是找到了。
-
-不过就看到的这样，不使用污点分析的话，误报率就会非常高。
+这样也能找到，但是呢还是会出现一些问题，相比较于模式一，首先链子普遍要长很多，很多也不准确相差比较大。但是会提供更多的路径。同样的，与模式1一样，还是会出现，关于抽象类与实现类遍历的问题。
 
 
 
 模式三 从sink逆推调用链
 
 ```
-java -jar java_asm_parse.jar --jar CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE -t 3
+java -jar java_asm_parse.jar -l CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE -t 3
 ```
 
-这个功能实在是一言难尽，首先使用这个给首先的要求：sink的descriptor必须要详细给出，不能使用`*`这样的替代,其次就是得出的结果太多了一弄就是几十个结果，根本没法看。如果真的想要使用的话，可能后期得配合neo4j数据库得到cha调用图或者使用别的优化方法才能够使用。
+这个功能实在是一言难尽，太多了一弄就是几十个结果，根本没法看。如果真的想要使用的话，可能后期得配合neo4j数据库得到cha调用图或者使用别的优化方法才能够使用。
 这里找了个老项目拿来改了一下，https://github.com/masters-info-nantes/bytecode-to-cfg
 能生成调用图了，后面命令的最后需要加一个--draw，但是生成的调用图并不好看。使用的时候需要将生成的jar文件与html文件夹放在一个目录下。
 [![xEx7y6.png](https://s1.ax1x.com/2022/09/26/xEx7y6.png)](https://imgse.com/i/xEx7y6)
 
+
+
 模式四 只分析源码中是否存在sink点
+
+这里用使用log4j2存在漏洞的版本来做个例子，我将jar包全部储存在一个文件夹中。
+
+使用
+
+```
+java -jar java_asm_parse-1.0-SNAPSHOT.jar -ld SSS --all -m JNDI -t 4
+```
+
+- ![image-20221004144527968.png](https://img1.imgtp.com/2022/10/04/pNOwKBOJ.png)
+
+可以看到找到了漏洞sink点

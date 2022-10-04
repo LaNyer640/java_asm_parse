@@ -56,12 +56,12 @@ public class SinkParseService {
         for (Map.Entry<MethodReference.Handle, Set<MethodReference.Handle>> entry: methodImplCall.entrySet()) {
             for (MethodReference.Handle TargetMethod : entry.getValue()) {
                 CallGraph callGraph = new CallGraph(TargetMethod,entry.getKey());
-                    if (!submethodImplCallMap.containsKey(TargetMethod)) {
+                    if (!this.submethodImplCallMap.containsKey(TargetMethod)) {
                         Set<CallGraph> graphCalls = new HashSet<>();
                         graphCalls.add(callGraph);
-                        submethodImplCallMap.put(TargetMethod, graphCalls);
+                        this.submethodImplCallMap.put(TargetMethod, graphCalls);
                     } else{
-                        submethodImplCallMap.get(TargetMethod).add(callGraph);
+                        this.submethodImplCallMap.get(TargetMethod).add(callGraph);
                 }
             }
         }
@@ -77,7 +77,6 @@ public class SinkParseService {
                     if(!MethodByNameMap.containsKey(method.hashCode())){
                         MethodByNameMap.put(method.hashCode(),method);
                         hashcodeMap.put(method.hashCode()-method.getDesc().hashCode(),method.hashCode());
-
                     }
                 }
             }

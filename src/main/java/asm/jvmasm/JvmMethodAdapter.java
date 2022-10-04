@@ -17,6 +17,7 @@ public class JvmMethodAdapter<T> extends MethodVisitor {
             { "java/lang/Object", "toString", "()Ljava/lang/String;", 0 },
             { "java/lang/String", "substring", "*", 0 },
             { "java/lang/String", "indexOf", "*", 0 },
+            { "java/lang/String","split", "*", 0 },
             { "javax/script/ScriptEngineManager", "getEngineByName", "*", 0,1 },
             // Taint from ObjectInputStream. Note that defaultReadObject() is handled differently below
             { "java/io/ObjectInputStream", "readObject", "()Ljava/lang/Object;", 0},
@@ -239,8 +240,8 @@ public class JvmMethodAdapter<T> extends MethodVisitor {
             case Opcodes.CALOAD:
             case Opcodes.SALOAD:
                 operandStack.pop();
-                operandStack.pop();
-                operandStack.push();
+                saved0=operandStack.pop();
+                operandStack.push(saved0);
                 break;
             case Opcodes.LALOAD:
             case Opcodes.DALOAD:
