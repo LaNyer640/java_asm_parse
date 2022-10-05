@@ -71,7 +71,7 @@ public class PassthroughService {
             //获取所属类进行观察
             ClassFile file = ClassFileByName.get(method.getClassReference().getName());
             try {
-                PassthroughClassVisitor dcv = new PassthroughClassVisitor(classMap,inheritanceMap,passthroughDataflow,Opcodes.ASM6,method);
+                PassthroughClassVisitor dcv = new PassthroughClassVisitor(classMap,inheritanceMap,passthroughDataflow,Opcodes.ASM7,method);
                 ClassReader cr = new ClassReader(file.getFile());
                 cr.accept(dcv, ClassReader.EXPAND_FRAMES);
                 passthroughDataflow.put(method, dcv.getReturnTaint());

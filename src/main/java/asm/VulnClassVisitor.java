@@ -23,7 +23,7 @@ public class VulnClassVisitor extends ClassVisitor {
     private VulnMethodAdapter vulnMethodAdapter;
 
     public VulnClassVisitor(MethodReference.Handle callerMethod,List<Sink> sinks) {
-        super(Opcodes.ASM6);
+        super(Opcodes.ASM7);
         this.methodHandle = callerMethod;
         this.sinks = sinks;
     }

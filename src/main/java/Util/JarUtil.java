@@ -15,9 +15,9 @@ import java.util.zip.ZipInputStream;
 
 public class JarUtil {
 
-    private static final Set<ClassFile> classFileSet = new HashSet<>();
+    private Set<ClassFile> classFileSet = new HashSet<>();
 
-    public static void resolveJarFile(String jarPath) {
+    public  void resolveJarFile(String jarPath) {
         try {
             final Path tmpDir = Files.createTempDirectory(
                     Paths.get(jarPath).getFileName().toString() + "_");
@@ -29,7 +29,7 @@ public class JarUtil {
             System.out.println(e);
         }
     }
-    public static List<ClassFile> resolveNormalJarFile(String jarPath) {
+    public  List<ClassFile> resolveNormalJarFile(String jarPath) {
         try {
             final Path tmpDir = Files.createTempDirectory(
                     Paths.get(jarPath).getFileName().toString() + "_");
@@ -44,7 +44,7 @@ public class JarUtil {
         return new ArrayList<>();
     }
 
-    private static void resolve(String jarPath, Path tmpDir) {
+    private void resolve(String jarPath, Path tmpDir) {
         try {
             InputStream is = new FileInputStream(jarPath);
             JarInputStream jarInputStream = new JarInputStream(is);
@@ -70,7 +70,7 @@ public class JarUtil {
     }
 
 
-    public static List<ClassFile> resolveSpringBootJarFile(String jarPath, boolean useAllLib) {
+    public  List<ClassFile> resolveSpringBootJarFile(String jarPath, boolean useAllLib) {
         try {
             final Path tmpDir = Files.createTempDirectory(
                     Paths.get(jarPath).getFileName().toString() + "_");
@@ -91,7 +91,7 @@ public class JarUtil {
         return new ArrayList<>();
     }
 
-    private static void resolveBoot(String jarPath, Path tmpDir) {
+    private void resolveBoot(String jarPath, Path tmpDir) {
         try {
             InputStream is = new FileInputStream(jarPath);
             JarInputStream jarInputStream = new JarInputStream(is);
@@ -116,7 +116,7 @@ public class JarUtil {
     }
 
 
-    public static void allfile(File file) {
+    public void allfile(File file) {
         File[] files = file.listFiles();
         if(files!=null && files.length>0) {
             for(File temp:files) {

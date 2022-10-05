@@ -14,7 +14,7 @@ public class MethodCallService {
     public static void start(List<ClassFile> classFileList, Map<MethodReference.Handle, Set<MethodReference.Handle>> methodCall){
         for (ClassFile file : classFileList) {
             try {
-                MethodCallClassVisitor dcv = new MethodCallClassVisitor(Opcodes.ASM6,methodCall);
+                MethodCallClassVisitor dcv = new MethodCallClassVisitor(Opcodes.ASM7,methodCall);
                 ClassReader cr = new ClassReader(file.getFile());
                 cr.accept(dcv, ClassReader.EXPAND_FRAMES);
             } catch (Exception e) {

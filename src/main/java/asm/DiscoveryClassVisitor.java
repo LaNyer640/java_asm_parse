@@ -18,7 +18,7 @@ public class DiscoveryClassVisitor extends ClassVisitor {
 
     public DiscoveryClassVisitor(List<ClassReference> discoveredClasses,
                                  List<MethodReference> discoveredMethods) {
-        super(Opcodes.ASM6);
+        super(Opcodes.ASM7);
         this.discoveredClasses = discoveredClasses;
         this.discoveredMethods = discoveredMethods;
     }

@@ -18,11 +18,13 @@ public class ClassUtil {
             getRuntime(classFileSet);
         }
         for (String jarPath : bootPathList) {
-            classFileSet.addAll(JarUtil.resolveSpringBootJarFile(jarPath, useAllLib));
+            JarUtil JarUtil = new JarUtil();
+            List<ClassFile> jarclassist = JarUtil.resolveSpringBootJarFile(jarPath, useAllLib);
             String jarName = jarPath;
-            for(ClassFile classFile:classFileSet){
+            for(ClassFile classFile:jarclassist){
                 jarByClass.put(classFile.getClassName().split("\\.")[0],jarName);
             }
+            classFileSet.addAll(jarclassist);
         }
         return new ArrayList<>(classFileSet);
     }
@@ -35,6 +37,7 @@ public class ClassUtil {
         if (!Files.exists(rtPath)) {
             throw new RuntimeException("rt.jar not exists");
         }
+        JarUtil JarUtil = new JarUtil();
         classFileSet.addAll(JarUtil.resolveNormalJarFile(rtJarPath));
     }
 

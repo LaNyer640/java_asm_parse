@@ -75,16 +75,17 @@ public class Application {
     private static void start(Command command) throws IOException {
         getClassFileList(command,jarByClass);
         loadSinks(command);
-        loadSource(command);
         getClassinfo();
         builfInheritance();
         getMethodCall();
         if (command.taint==1){
+            loadSource(command);
             buildPassthrough();
             buildCallGraph();
             startTaintParse();
         }
         if(command.taint==2) {
+            loadSource(command);
             startNoTaintParse();
         }
         if(command.taint==3){
@@ -112,7 +113,7 @@ public class Application {
 
             if (module.contains("SSRF")) {
                 LoadSink.load(Sinks,SSRFconstant.getRules());
-                System.out.println("加载SSRF规则");
+                System.out.println("[+] 加载SSRF规则");
             }
             if (module.contains("XXE")) {
                 LoadSink.load(Sinks,XXEconstant.getRules());
@@ -157,11 +158,11 @@ public class Application {
         }
     }
 
-    private static void loadSource(Command command){
-        if(command.source!=null&&command.source.equals("jenkins")) {
-            LoadSource.loadJenkins(Sources,classFileList);
-        }else{
-            LoadSource.loadsource(Sources,classFileList);
+    private static void loadSource(Command command) {
+        if (command.source != null) {
+            LoadSource.loadsource(Sources, classFileList,command.source);
+        } else {
+            LoadSource.loadsource(Sources, classFileList);
         }
     }
     private static void getClassFileList(Command command,Map jarByClass) {

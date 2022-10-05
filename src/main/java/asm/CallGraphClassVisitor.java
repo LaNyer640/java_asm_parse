@@ -23,7 +23,7 @@ public class CallGraphClassVisitor extends ClassVisitor {
                                  InheritanceMap inheritanceMap,
                                  Map<MethodReference.Handle, Set<Integer>> passthroughDataflow,
                                  Set<CallGraph> discoveredCalls) {
-        super(Opcodes.ASM6);
+        super(Opcodes.ASM7);
         this.classMap = classMap;
         this.inheritanceMap = inheritanceMap;
         this.passthroughDataflow = passthroughDataflow;
