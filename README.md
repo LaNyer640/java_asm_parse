@@ -52,6 +52,11 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
       【+】加载sink自定义规则
     --source
       【+】source选择
+   	    --methodName
+    --methodName
+      【+】想要搜寻方法
+    --Save
+      【+】保存sink规则
 ```
 
 上面一一解释用法
@@ -124,11 +129,37 @@ crilwa给我说java程序很复杂，soot或许比asm更适合一些抽象的分
 7. **--source**
 
    【+】source选择
-     因为这里还没有设置一些source，我这里设置source因为不像前面几个师傅们一样专注于spring-web，所以我这里直接使用了正则匹配方法名来设置，这里设置了专门匹配do开头后面接一个大写字母，然后任意字母这样的规则，比如doMain这样的方法来收集source。这样确实很简陋，但是可以一步步改进，后面弄个，从外部接受规则？
+     因为这里还没有设置一些source，我这里设置source因为不像前面几个师傅们一样专注于spring-web，所以我这里直接使用了正则匹配方法名来设置，这里设置了专门匹配do开头后面接一个大写字母，然后任意字母这样的规则，比如doMain这样的方法来收集source。~~这样确实很简陋，但是可以一步步改进，后面弄个，从外部接受规则~~
 
-   现在如果想要使用的话，还是需要自己去源码中的`SourceClassVisitor` 自行更改正则规则
+   ~~现在如果想要使用的话，还是需要自己去源码中的`SourceClassVisitor` 自行更改正则规则~~
    
    - ![image-20220918205554347.png](https://img1.imgtp.com/2022/09/18/UNXNG5RE.png)
+   
+     使用
+   
+     ```
+     --source "这里填正则来匹配方法名"
+     ```
+   
+     或许后面还可以用添加一些其他的方法来使用，比如有个函数在其内部有接收数据的方法就给其添加上。
+
+9.    --methodName
+      【+】想要搜寻方法
+        这个方法是有些时候在工具的使用中需要知道方法的入参描述。就可以单独使用
+      
+        ```
+      java -jar java_asm_parse-1.0-SNAPSHOT.jar -l 1.jar --methodName "RCEtest"
+        ```
+      
+      那么就会把所有名字叫RCEtest的函数入参描述输出。
+      
+10.    --Save
+         【+】保存sink规则
+           这个选项主要是为了在模式四中，根据已有的规则来得到的调用了该规则的方法。这样做是实际在做的时候，可以先筛选一遍减少无用链子。
+
+
+
+
 
 ## 使用例子
 
@@ -203,6 +234,28 @@ java -jar java_asm_parse.jar -l CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE -t 
 能生成调用图了，后面命令的最后需要加一个--draw，但是生成的调用图并不好看。使用的时候需要将生成的jar文件与html文件夹放在一个目录下。
 [![xEx7y6.png](https://s1.ax1x.com/2022/09/26/xEx7y6.png)](https://imgse.com/i/xEx7y6)
 
+模式三这种将所有方法都定义为sourc。逆推链子得到的数据会变得极为庞大且不适用。所以做了个小优化，将链子最后的方法进行分类，然后将这个分类中最短的链子输出。其余链子放在了Stack.dat文件中，若想比对也可以使用。
+
+这里拿最近的CVE-2022-41852做个例子
+
+- ![image-20221013092920050.png](https://img1.imgtp.com/2022/10/13/WKNFnjZo.png)
+
+- ![image-20221013093112464.png](https://img1.imgtp.com/2022/10/13/60k2SzDF.png)
+
+
+
+又或者拿昨天有师傅看到得
+
+apache.commons.text
+
+- ![image-20221013093640368.png](https://img1.imgtp.com/2022/10/13/eIGlMvGO.png)
+
+虽然这个是在看CVE-2022-33980也发现了得，但是当时也没注意。
+
+以上给出得例子，链子都不是特别复杂，在更多得分析当中，模式三可能并不适用
+
+
+
 
 
 模式四 只分析源码中是否存在sink点
@@ -212,9 +265,10 @@ java -jar java_asm_parse.jar -l CVE-2022-33980-1.0-SNAPSHOT.jar --all -m RCE -t 
 使用
 
 ```
-java -jar java_asm_parse-1.0-SNAPSHOT.jar -ld SSS --all -m JNDI -t 4
+java -jar java_asm_parse-1.0-SNAPSHOT.jar -ld SSS --all -m JNDI -t 42
 ```
 
 - ![image-20221004144527968.png](https://img1.imgtp.com/2022/10/04/pNOwKBOJ.png)
 
 可以看到找到了漏洞sink点
+
