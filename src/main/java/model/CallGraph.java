@@ -1,8 +1,9 @@
 package model;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class CallGraph {
+public class CallGraph implements Serializable {
     private final MethodReference.Handle callerMethod;
     private final MethodReference.Handle targetMethod;
     private final int callerArgIndex;

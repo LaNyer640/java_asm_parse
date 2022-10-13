@@ -1,19 +1,22 @@
 package model;
 
 import java.util.Objects;
+import java.io.Serializable;
 
-public class MethodReference {
+public class MethodReference implements Serializable {
     private final ClassReference.Handle classReference;
     private final String name;
     private final String desc;
     private final boolean isStatic;
+    private final boolean isAbstract;
 
     public MethodReference(ClassReference.Handle classReference,
-                           String name, String desc, boolean isStatic) {
+                           String name, String desc, boolean isStatic,boolean isAbstract) {
         this.classReference = classReference;
         this.name = name;
         this.desc = desc;
         this.isStatic = isStatic;
+        this.isAbstract = isAbstract;
     }
 
     public ClassReference.Handle getClassReference() {
@@ -36,7 +39,9 @@ public class MethodReference {
         return new Handle(classReference, name, desc);
     }
 
-    public static class Handle {
+    public boolean isAbstract(){return isAbstract;}
+
+    public static class Handle implements Serializable {
         private final ClassReference.Handle classReference;
         private final String name;
         private final String desc;
@@ -75,7 +80,7 @@ public class MethodReference {
 
         @Override
         public int hashCode() {
-            int result = classReference != null ? classReference.hashCode() : 0;
+            int result = classReference != null ? classReference.getName().hashCode() : 0;
             result = 31 * result + (name != null ? name.hashCode() : 0);
             result = 31 * result + (desc != null ? desc.hashCode() : 0);
             return result;

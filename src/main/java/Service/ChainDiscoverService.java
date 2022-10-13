@@ -51,7 +51,7 @@ public class ChainDiscoverService {
             CallGraph edge = tempList.get(i);
             ClassReference.Handle handle = edge.getTargetMethod().getClassReference();
             ClassReference classReference = classMap.get(handle);
-            if (classReference != null && classReference.isInterface()) {
+            if (classReference != null && (classReference.isInterface()||classReference.isAbstract())) {
                 Set<MethodReference.Handle> implSet = methodImplMap.get(edge.getTargetMethod());
                 if (implSet == null || implSet.size() == 0) {
                     continue;

@@ -11,16 +11,26 @@ public class DiscoveryClassVisitor extends ClassVisitor {
     private String superName;
     private String[] interfaces;
     private boolean isInterface;
+    private boolean isAbstract;
     private List<ClassReference.Variable> Variables;
     private ClassReference.Handle classHandle;
-    private final List<ClassReference> discoveredClasses;
-    private final List<MethodReference> discoveredMethods;
+    private  List<ClassReference> discoveredClasses;
+    private  List<MethodReference> discoveredMethods;
+
+    private  String methodName;
+
+
 
     public DiscoveryClassVisitor(List<ClassReference> discoveredClasses,
                                  List<MethodReference> discoveredMethods) {
         super(Opcodes.ASM7);
         this.discoveredClasses = discoveredClasses;
         this.discoveredMethods = discoveredMethods;
+    }
+
+    public DiscoveryClassVisitor(String methodName) {
+        super(Opcodes.ASM7);
+        this.methodName = methodName;
     }
 
     @Override
@@ -30,6 +40,7 @@ public class DiscoveryClassVisitor extends ClassVisitor {
         this.superName = superName;
         this.interfaces = interfaces;
         this.isInterface = (access & Opcodes.ACC_INTERFACE) != 0;
+        this.isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
         this.Variables = new ArrayList<>();
         this.classHandle = new ClassReference.Handle(name);
         super.visit(version, access, name, signature, superName, interfaces);
@@ -58,24 +69,35 @@ public class DiscoveryClassVisitor extends ClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc,
                                      String signature, String[] exceptions) {
-        boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
-        discoveredMethods.add(new MethodReference(
-                classHandle,
-                name,
-                desc,
-                isStatic));
+        if(methodName!=null){
+            if(methodName.equals(name)){
+                System.out.println(this.name);
+                System.out.println(desc);
+            }
+        } else {
+            boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
+            discoveredMethods.add(new MethodReference(
+                    classHandle,
+                    name,
+                    desc,
+                    isStatic,isAbstract));
+        }
         return super.visitMethod(access, name, desc, signature, exceptions);
+
     }
 
     @Override
     public void visitEnd() {
-        ClassReference classReference = new ClassReference(
-                name,
-                superName,
-                Arrays.asList(interfaces),
-                isInterface,
-                Variables);
-        discoveredClasses.add(classReference);
+        if(methodName==null){
+            ClassReference classReference = new ClassReference(
+                    name,
+                    superName,
+                    Arrays.asList(interfaces),
+                    isInterface,
+                    Variables,
+                    isAbstract);
+            discoveredClasses.add(classReference);
+        }
         super.visitEnd();
     }
 }

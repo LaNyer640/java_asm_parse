@@ -30,4 +30,17 @@ public class DiscoverService {
             methodMap.put(method.getHandle(), method);
         }
     }
+
+
+    public static void start(List<ClassFile> classFileList,String methodName) {
+        for (ClassFile file : classFileList) {
+            try {
+                DiscoveryClassVisitor dcv = new DiscoveryClassVisitor(methodName);
+                ClassReader cr = new ClassReader(file.getFile());
+                cr.accept(dcv, ClassReader.EXPAND_FRAMES);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

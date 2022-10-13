@@ -1,6 +1,7 @@
 package Service;
 
 import Util.WriteUtil;
+import app.Command;
 import asm.VulnClassVisitor;
 import model.*;
 import org.objectweb.asm.ClassReader;
@@ -12,20 +13,18 @@ public class onlySinkParseServerice {
     private final Map<String, ClassFile> classFileByName;
     private final model.InheritanceMap InheritanceMap;
     private final Map<MethodReference.Handle, MethodReference> methodMap;
-
     private Set<CallGraph> discoveredCalls;
     private final Map<ClassReference.Handle, ClassReference> classMap;
-    private Map<MethodReference.Handle, Set<MethodReference.Handle>> methodImplCall = new HashMap<>();
-
     private final List<List<Sink>> Sinks;
     private final Map<String,String> jarByClass;
-
+    private List<MethodReference.Handle> SaveSinkList = new ArrayList<>();
     private int VulnNumber = 1;
+    private boolean Save;
 
 
-    public onlySinkParseServerice(Map<String, ClassFile> classFileByName, InheritanceMap InheritanceMap,Set<CallGraph> discoveredCalls,
-                                       Map<MethodReference.Handle, MethodReference> methodMap, Map<ClassReference.Handle,
-            ClassReference> classMap, List<List<Sink>> Sinks,Map jarByClass){
+    public onlySinkParseServerice(Map<String, ClassFile> classFileByName, InheritanceMap InheritanceMap, Set<CallGraph> discoveredCalls,
+                                  Map<MethodReference.Handle, MethodReference> methodMap, Map<ClassReference.Handle,
+            ClassReference> classMap, List<List<Sink>> Sinks, Map jarByClass, boolean Save){
         this.classFileByName = classFileByName;
         this.InheritanceMap = InheritanceMap;
         this.methodMap = methodMap;
@@ -33,6 +32,7 @@ public class onlySinkParseServerice {
         this.classMap =classMap;
         this.Sinks = Sinks;
         this.jarByClass = jarByClass;
+        this.Save = Save;
     }
 
     public void start(){
@@ -65,7 +65,6 @@ public class onlySinkParseServerice {
     */
 
     private void prepareCallGraphMap(Map<MethodReference.Handle, MethodReference> methodMap) {
-        Map<MethodReference.Handle, Set<CallGraph>> graphCallMap = new HashMap<>();
 
         Map<MethodReference.Handle, Set<MethodReference.Handle>> methodImplMap = InheritanceService.getAllMethodImplementations(InheritanceMap, methodMap);
         WriteUtil.SavemethodImplMap(Paths.get("methodImplMap.dat"), methodImplMap);
@@ -75,7 +74,7 @@ public class onlySinkParseServerice {
             CallGraph edge = tempList.get(i);
             ClassReference.Handle handle = edge.getTargetMethod().getClassReference();
             ClassReference classReference = classMap.get(handle);
-            if (classReference != null && classReference.isInterface()) {
+            if (classReference != null && (classReference.isInterface()||classReference.isAbstract())) {
                 Set<MethodReference.Handle> implSet = methodImplMap.get(edge.getTargetMethod());
                 if (implSet == null || implSet.size() == 0) {
                     continue;
@@ -99,29 +98,37 @@ public class onlySinkParseServerice {
 
     public void doDiscover(List<List<Sink>> Sinks){
         for(List<Sink> sink : Sinks){
+            List<Integer> VistedMethod = new ArrayList<>();
             for(CallGraph CallGraph:discoveredCalls) {
-                if (sink.size() == 1 && isFirstSink(sink, CallGraph.getTargetMethod()) && isblacklist(CallGraph.getCallerMethod().getClassReference().getName(), sink.get(0).getClassName())&&CallGraph.getCallerArgIndex()!=0) {
-                    //&& isblacklist(entry.getKey().getClassReference().getName(),sink.get(0).getClassName())
-                    System.out.println();
-                    System.out.println("[" + VulnNumber + "] detect vuln: " + sink.get(0).getSinkName() + "  Name: " + sink.get(0).getName());
-                    System.out.println("jar is: " + jarByClass.get(CallGraph.getCallerMethod().getClassReference().getName()));
-                    System.out.println("location is: " + CallGraph.getCallerMethod().getClassReference().getName() + ":" + CallGraph.getCallerMethod().getName());
-                    VulnNumber++;
-                }
-                if (sink.size() != 1 && isFirstSink(sink, CallGraph.getTargetMethod())&& isblacklist(CallGraph.getCallerMethod().getClassReference().getName(), sink.get(0).getClassName())&&CallGraph.getCallerArgIndex()!=0) {
-                    ClassFile file = classFileByName.get(CallGraph.getCallerMethod().getClassReference().getName());
-                    VulnClassVisitor dcv = new VulnClassVisitor(CallGraph.getCallerMethod(), sink);
-                    ClassReader cr = new ClassReader(file.getFile());
-                    cr.accept(dcv, ClassReader.EXPAND_FRAMES);
-                    if (dcv.getVulnFlag() == sink.size() && !CallGraph.getCallerMethod().getClassReference().getName().equals(sink.get(0).getClassName())) {
+                if (!VistedMethod.contains(CallGraph.getCallerMethod().hashCode()+CallGraph.getTargetMethod().hashCode())) {
+                    if (sink.size() == 1 && isFirstSink(sink, CallGraph.getTargetMethod()) && isblacklist(CallGraph.getCallerMethod().getClassReference().getName(), sink.get(0).getClassName())) {
                         System.out.println();
                         System.out.println("[" + VulnNumber + "] detect vuln: " + sink.get(0).getSinkName() + "  Name: " + sink.get(0).getName());
                         System.out.println("jar is: " + jarByClass.get(CallGraph.getCallerMethod().getClassReference().getName()));
-                        System.out.println("location is:" + CallGraph.getCallerMethod().getClassReference().getName() + ":" + CallGraph.getCallerMethod().getName());
+                        System.out.println("location is: " + CallGraph.getCallerMethod().getClassReference().getName() + ":" + CallGraph.getCallerMethod().getName());
                         VulnNumber++;
+                        SaveSinkList.add(CallGraph.getCallerMethod());
+                    }
+                    if (sink.size() != 1 && isFirstSink(sink, CallGraph.getTargetMethod()) && isblacklist(CallGraph.getCallerMethod().getClassReference().getName(), sink.get(0).getClassName())) {
+                        ClassFile file = classFileByName.get(CallGraph.getCallerMethod().getClassReference().getName());
+                        VulnClassVisitor dcv = new VulnClassVisitor(CallGraph.getCallerMethod(), sink);
+                        ClassReader cr = new ClassReader(file.getFile());
+                        cr.accept(dcv, ClassReader.EXPAND_FRAMES);
+                        if (dcv.getVulnFlag() == sink.size() && !CallGraph.getCallerMethod().getClassReference().getName().equals(sink.get(0).getClassName())) {
+                            System.out.println();
+                            System.out.println("[" + VulnNumber + "] detect vuln: " + sink.get(0).getSinkName() + "  Name: " + sink.get(0).getName());
+                            System.out.println("jar is: " + jarByClass.get(CallGraph.getCallerMethod().getClassReference().getName()));
+                            System.out.println("location is:" + CallGraph.getCallerMethod().getClassReference().getName() + ":" + CallGraph.getCallerMethod().getName());
+                            VulnNumber++;
+                            SaveSinkList.add(CallGraph.getCallerMethod());
+                        }
                     }
                 }
+                VistedMethod.add(CallGraph.getCallerMethod().hashCode()+CallGraph.getTargetMethod().hashCode());
             }
+        }
+        if(Save==true){
+            WriteUtil.SaveSinkRule(Paths.get("SinkRule.dat"),SaveSinkList);
         }
     }
 

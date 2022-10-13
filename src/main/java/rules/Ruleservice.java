@@ -33,32 +33,34 @@ public class Ruleservice {
             String rule = null;
             while((rule = bufferedReader.readLine() )!= null){
                 List tempList = new ArrayList();
-                String[] temp = rule.split(" ");
-                owner = temp[0];
-                methodname = temp[1];
-                desc = temp[2];
-                sinkName = temp[3];
-                targetIndex = Integer.parseInt(temp[4]);
-                flag = Integer.parseInt(temp[5]);
-                Sink sink = new Sink(owner,methodname,desc,sinkName,targetIndex,flag);
-                tempList.add(sink);
-                if(flag3 ==0){
-                    flag3 = Integer.parseInt(temp[5]);
-                }
-                if(flag==1){
-                    Sinks.add(tempList);
-                    flag2++;
-                    flag3--;
-                } else if(flag!=1&&flag3==flag){
-                    Sinks.add(tempList);
-                    flag2++;
-                    flag3--;
-                } else if(flag!=1&& flag3!=flag && flag3 !=0){
-                    Sinks.get(flag2).add(sink);
-                    flag3--;
-                } else if(flag!=1&& flag3==0){
-                    Sinks.get(flag2).add(sink);
-                    flag2++;
+                String[] temp = rule.split("\\s+");
+                if(temp.length==6){
+                    owner = temp[0];
+                    methodname = temp[1];
+                    desc = temp[2];
+                    sinkName = temp[3];
+                    targetIndex = Integer.parseInt(temp[4]);
+                    flag = Integer.parseInt(temp[5]);
+                    Sink sink = new Sink(owner,methodname,desc,sinkName,targetIndex,flag);
+                    tempList.add(sink);
+                    if(flag3 ==0){
+                        flag3 = Integer.parseInt(temp[5]);
+                    }
+                    if(flag==1){
+                        Sinks.add(tempList);
+                        flag2++;
+                        flag3--;
+                    } else if(flag!=1&&flag3==flag){
+                        Sinks.add(tempList);
+                        flag2++;
+                        flag3--;
+                    } else if(flag!=1&& flag3!=flag && flag3 !=0){
+                        Sinks.get(flag2).add(sink);
+                        flag3--;
+                    } else if(flag!=1&& flag3==0){
+                        Sinks.get(flag2).add(sink);
+                        flag2++;
+                    }
                 }
             }
         } catch (FileNotFoundException e) {

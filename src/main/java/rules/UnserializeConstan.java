@@ -43,8 +43,12 @@ public class UnserializeConstan {
             {"INVOKEVIRTUAL", "com/google/gson/Gson", "fromJson", "*", "unserialize", "Gson-unserialize","-1","1"},
 
             {"INVOKEVIRTUAL", "org/apache/commons/lang/RandomStringUtils", "deserialize", "*", "unserialize", "lang-unserialize","-1","1"},
-            {"INVOKEVIRTUAL", "org/apache/commons/lang3/RandomStringUtils", "deserialize", "*", "unserialize", "lang-unserialize","-1","1"}
+            {"INVOKEVIRTUAL", "org/apache/commons/lang3/RandomStringUtils", "deserialize", "*", "unserialize", "lang-unserialize","-1","1"},
+
+            {"INVOKEVIRTUAL", "com/esotericsoftware/kryo", "readClassAndObject", "*", "unserialize", "kryo-unserialize","1","1"}
+
     };
+
     public static String[][] getRules(){
         return rules;
     }

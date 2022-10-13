@@ -34,4 +34,8 @@ public class Command {
 
     @Parameter(names = {"--draw"}, description = "【+】画出调用图")
     public boolean draw;
+    @Parameter(names = {"--Save"}, description = "【+】保存sink规则")
+    public Boolean Save=false;
+    @Parameter(names = {"--methodName"}, description = "【+】想要搜寻方法")
+    public String methodName=null;
 }

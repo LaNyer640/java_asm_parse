@@ -14,6 +14,7 @@ public class SourceClassVisitor extends ClassVisitor {
     private List<MethodReference> Sources;
     private String sourcePattern;
 
+
     public SourceClassVisitor(List<MethodReference> Sources,String sourcePattern) {
         super(Opcodes.ASM7);
         this.Sources = Sources;
@@ -30,23 +31,27 @@ public class SourceClassVisitor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-        if(sourcePattern!=null){
+        if(sourcePattern==null){
             if (MethodNameIsMatch(name)) {
                 boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
+                boolean isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
                 Sources.add(new MethodReference(
                         classHandle,
                         name,
                         descriptor,
-                        isStatic));
+                        isStatic,
+                        isAbstract));
             }
         }else {
             if (MethodNameIsMatch(this.sourcePattern,name)) {
                 boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
+                boolean isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
                 Sources.add(new MethodReference(
                         classHandle,
                         name,
                         descriptor,
-                        isStatic));
+                        isStatic,
+                        isAbstract));
             }
         }
 

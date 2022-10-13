@@ -3,11 +3,13 @@ package app;
 import Service.*;
 import Util.ClassUtil;
 import Util.DirUtil;
+import Util.StackUtil;
 import com.beust.jcommander.JCommander;
 import model.*;
 import rules.*;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 
 import org.slf4j.Logger;
@@ -45,7 +47,12 @@ public class Application {
         }
         if((command.jar != null && command.jar.size() != 0)||(command.libs!=null)){
             printConfig(command);
-            start(command);
+            if(command.methodName!=null){
+                getClassFileList(command,jarByClass);
+                getClassinfo(command.methodName);
+            }else {
+                start(command);
+            }
         }else if (command.jar == null && command.libs ==null){
             logger.error("[-] no zips or jar input");
         }
@@ -91,10 +98,13 @@ public class Application {
         if(command.taint==3){
             parseSink();
         }
-        if(command.taint==4){
+        if(command.taint==41){
             buildPassthrough();
             buildCallGraph();
-            parseOnlySink();
+            parseOnlySink(command);
+        }
+        if(command.taint==42){
+            parseOnlySink2(command);
         }
         if(command.draw == true){
             startdraw();
@@ -102,54 +112,55 @@ public class Application {
     }
 
     public static void loadSinks(Command command){
-        if (command.module == null || command.module.equals("")) {
+        if ((command.module == null || command.module.equals(""))&&command.rule==null) {
             System.out.println("[-] no module selected");
         } else {
-            String module = command.module.toUpperCase(Locale.ROOT);
-            if (module.contains("ALL")) {
-                module = "SSRF|SQLI|XXE|RCE|DOS|FileRead|JNDI|XSS|ZIPSLIP|UNSERIALIZE";
-                System.out.println("[+] 加载所有规则");
-            }
-
-            if (module.contains("SSRF")) {
-                LoadSink.load(Sinks,SSRFconstant.getRules());
-                System.out.println("[+] 加载SSRF规则");
-            }
-            if (module.contains("XXE")) {
-                LoadSink.load(Sinks,XXEconstant.getRules());
-                System.out.println("[+] 加载XXE规则");
-            }
-            if (module.contains("SQLI")) {
-                LoadSink.load(Sinks,SQLinjectionConstant.getRules());
-                System.out.println("[+] 加载SQLI规则");
-            }
-            if (module.contains("RCE")) {
-                LoadSink.load(Sinks,RCEConstant.getRules());
-                System.out.println("[+] 加载RCE规则");
-            }
-            if (module.contains("FileRead")) {
-                LoadSink.load(Sinks,FileReadConstant.getRules());
-                System.out.println("[+] 加载FileRead规则");
-            }
-            if (module.contains("LDAP")) {
-                LoadSink.load(Sinks,LDAPinjectionConstant.getRules());
-                System.out.println("[+] 加载LDAP规则");
-            }
-            if (module.contains("JNDI")) {
-                LoadSink.load(Sinks,JNDIConstant.getRules());
-                System.out.println("[+] 加载JNDI规则");
-            }
-            if (module.contains("XSS")) {
-                LoadSink.load(Sinks,XSSconstant.getRules());
-                System.out.println("[+] 加载XSS规则");
-            }
-            if (module.contains("ZIPSLIP")) {
-                LoadSink.load(Sinks,ZipSlipConstant.getRules());
-                System.out.println("[+] 加载ZipSlip规则");
-            }
-            if (module.contains("UNSERIALIZE")) {
-                LoadSink.load(Sinks,UnserializeConstan.getRules());
-                System.out.println("[+] 加载Unserialize规则");
+            if(command.module != null){
+                String module = command.module.toUpperCase(Locale.ROOT);
+                if (module.contains("ALL")) {
+                    module = "SSRF|SQLI|XXE|RCE|DOS|FileRead|JNDI|XSS|ZIPSLIP|UNSERIALIZE";
+                    System.out.println("[+] 加载所有规则");
+                }
+                if (module.contains("SSRF")) {
+                    LoadSink.load(Sinks,SSRFconstant.getRules());
+                    System.out.println("[+] 加载SSRF规则");
+                }
+                if (module.contains("XXE")) {
+                    LoadSink.load(Sinks,XXEconstant.getRules());
+                    System.out.println("[+] 加载XXE规则");
+                }
+                if (module.contains("SQLI")) {
+                    LoadSink.load(Sinks,SQLinjectionConstant.getRules());
+                    System.out.println("[+] 加载SQLI规则");
+                }
+                if (module.contains("RCE")) {
+                    LoadSink.load(Sinks,RCEConstant.getRules());
+                    System.out.println("[+] 加载RCE规则");
+                }
+                if (module.contains("FileRead")) {
+                    LoadSink.load(Sinks,FileReadConstant.getRules());
+                    System.out.println("[+] 加载FileRead规则");
+                }
+                if (module.contains("LDAP")) {
+                    LoadSink.load(Sinks,LDAPinjectionConstant.getRules());
+                    System.out.println("[+] 加载LDAP规则");
+                }
+                if (module.contains("JNDI")) {
+                    LoadSink.load(Sinks,JNDIConstant.getRules());
+                    System.out.println("[+] 加载JNDI规则");
+                }
+                if (module.contains("XSS")) {
+                    LoadSink.load(Sinks,XSSconstant.getRules());
+                    System.out.println("[+] 加载XSS规则");
+                }
+                if (module.contains("ZIPSLIP")) {
+                    LoadSink.load(Sinks,ZipSlipConstant.getRules());
+                    System.out.println("[+] 加载ZipSlip规则");
+                }
+                if (module.contains("UNSERIALIZE")) {
+                    LoadSink.load(Sinks,UnserializeConstan.getRules());
+                    System.out.println("[+] 加载Unserialize规则");
+                }
             }
             if(command.rule!=null){
                 System.out.println("[+] 使用自定义rule");
@@ -173,14 +184,18 @@ public class Application {
             List<String> libs =DirUtil.getAllFile(command.libs);
             classFileList.addAll(ClassUtil.getAllClassesFromBoots(libs, command.jdk, command.lib,jarByClass));
         }
-        System.out.println("[+] 一共分析了" +classFileList.size()+"个类");
     }
 
 
     private static void getClassinfo(){
         DiscoverService.start(classFileList,discoveredClasses,discoveredMethods,classMap,methodMap,classFileByName);
+        System.out.println("[+] 一共分析了" +discoveredClasses.size()+"个类");
+        System.out.println("[+] 一共分析了" +discoveredMethods.size()+"个方法");
     }
 
+    private static void getClassinfo(String methodName){
+        DiscoverService.start(classFileList,methodName);
+    }
     public static void load_rules(List<List<Sink>> Sinks,Command command){
         Ruleservice Ruleservice = new Ruleservice();
         Ruleservice.start(Sinks,command);
@@ -212,14 +227,26 @@ public class Application {
         NoTaintChainDiscoverService.start();
     }
 
-    private static void parseSink(){
+    private static void parseSink() throws IOException {
         SinkParseService SinkParseService = new SinkParseService(InheritanceMap,methodCall,methodMap,classMap,Sinks,stacks);
         SinkParseService.start();
+        List<List<Deque<MethodReference.Handle>>> paixuStack = StackUtil.paixu(stacks);
+        System.out.println("【+】 一共回溯出了"+paixuStack.get(0).size()+"条链子");
+        for(Deque<MethodReference.Handle> i : paixuStack.get(0)){
+            StackUtil.printStackTrace(i);
+        }
+        StackUtil.SaveStack(Paths.get("Stack.dat"),paixuStack.get(1));
     }
-    private static void parseOnlySink(){
-        onlySinkParseServerice onlySinkParseServerice = new onlySinkParseServerice(classFileByName,InheritanceMap,discoveredCalls,methodMap,classMap,Sinks,jarByClass);
+    private static void parseOnlySink(Command command){
+        onlySinkParseServerice onlySinkParseServerice = new onlySinkParseServerice(classFileByName,InheritanceMap,discoveredCalls,methodMap,classMap,Sinks,jarByClass,command.Save);
         onlySinkParseServerice.start();
     }
+
+    private static void parseOnlySink2(Command command){
+        onlySinkParseServerice2 onlySinkParseServerice = new onlySinkParseServerice2(classFileByName,InheritanceMap,methodCall,methodMap,classMap,Sinks,command.Save);
+        onlySinkParseServerice.start();
+    }
+
     private static void startdraw() throws IOException {
         DarwService.start(stacks);
     }

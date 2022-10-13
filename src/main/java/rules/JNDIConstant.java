@@ -5,7 +5,7 @@ import java.util.List;
 
 public class JNDIConstant {
     private static final String[][] rules = new String[][]{
-            {"INVOKEVIRTUAL","javax/naming/Context","lookup","*","JNDI","JAVAX-JNDI","-1","1"},
+            {"INVOKEVIRTUAL","javax/naming/Context","lookup","(Ljava/lang/String;)Ljava/lang/Object;","JNDI","JAVAX-JNDI","-1","1"},
             //{"INVOKEVIRTUAL","javax/naming/Context","lookupLink","*","JNDI","JAVAX-JNDI","-1","1"},
             //{"INVOKEVIRTUAL","javax/naming/Context","list","*","JNDI","JAVAX-JNDI","-1","1"},
             //{"INVOKEVIRTUAL","javax/naming/Context","listBindings","*","JNDI","JAVAX-JNDI","-1","1"},

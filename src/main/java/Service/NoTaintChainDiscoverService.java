@@ -44,13 +44,12 @@ public class NoTaintChainDiscoverService {
     private Map<MethodReference.Handle, Set<CallGraph>> preparemethodCall(Map<MethodReference.Handle, MethodReference> methodMap){
         Map<MethodReference.Handle, Set<CallGraph>> methodImplCallMap = new HashMap<>();
         Map<MethodReference.Handle, Set<MethodReference.Handle>> methodImplMap = InheritanceService.getAllMethodImplementations(InheritanceMap, methodMap);
-        WriteUtil.SavemethodImplMap(Paths.get("methodImplMap.dat"),methodImplMap);
         methodImplCall.putAll(methodCall);
         for (Map.Entry<MethodReference.Handle, Set<MethodReference.Handle>> entry: methodCall.entrySet()){
             for(MethodReference.Handle TargetMethod: entry.getValue()){
                 ClassReference.Handle handle = TargetMethod.getClassReference();
                 ClassReference classReference = classMap.get(handle);
-                if (classReference != null && classReference.isInterface()) {
+                if (classReference != null && (classReference.isInterface()||classReference.isAbstract())) {
                     Set<MethodReference.Handle> methodImp = methodImplMap.get(TargetMethod);
                     if(methodImp!=null){
                         for ( MethodReference.Handle a :methodImp){
@@ -79,17 +78,18 @@ public class NoTaintChainDiscoverService {
         return methodImplCallMap;
     }
 
-
-
     public void doDiscover(List<MethodReference> Sources , List<List<Sink>> Sinks){
         for(MethodReference Source : Sources){
+            System.out.println(Source.getName());
             Set<CallGraph> calls = methodImplCallMap.get(Source.getHandle());
-            for(CallGraph callGraph : calls){
-                for(List<Sink> sink : Sinks){
-                    LinkedList<MethodReference.Handle> stack = new LinkedList<>();
-                    stack.push(callGraph.getCallerMethod());
-                    doTask(callGraph.getCallerMethod(),callGraph.getTargetMethod(), stack,sink);
-                    stack.pop();
+            if(calls!=null){
+                for(CallGraph callGraph : calls){
+                    for(List<Sink> sink : Sinks){
+                        LinkedList<MethodReference.Handle> stack = new LinkedList<>();
+                        stack.push(callGraph.getCallerMethod());
+                        doTask(callGraph.getCallerMethod(),callGraph.getTargetMethod(), stack,sink);
+                        stack.pop();
+                    }
                 }
             }
         }
@@ -102,7 +102,6 @@ public class NoTaintChainDiscoverService {
             stack.push(targetMethod);
             return;
         }
-        stack.push(targetMethod);
         if (sinks.size() == 1 && isFirstSink(sinks, targetMethod)) {
             System.out.println("[+] detect vuln: " + sinks.get(0).getName());
             Deque<MethodReference.Handle> copyStack = new LinkedList<>(stack);
@@ -161,5 +160,4 @@ public class NoTaintChainDiscoverService {
         }
         return false;
     }
-
 }

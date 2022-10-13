@@ -32,11 +32,13 @@ public class SinkClassVisitor extends ClassVisitor {
         if(MethodNameIsMatch(name)){
             System.out.println(name);
             boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
+            boolean isAbstract = (access & Opcodes.ACC_ABSTRACT) !=0;
             Sources.add(new MethodReference(
                     classHandle,
                     name,
                     descriptor,
-                    isStatic));
+                    isStatic,
+                    isAbstract));
         }
         return super.visitMethod(access, name, descriptor, signature, exceptions);
     }

@@ -9,6 +9,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,13 +57,13 @@ public class WriteUtil {
                 StringBuilder sb = new StringBuilder();
                 for (Map.Entry<MethodReference.Handle, Set<MethodReference.Handle>> entry: methodCall.entrySet()) {
                     String MethodName = entry.getKey().getName();
-                    sb.append("\n").append(entry.getKey().getClassReference().getName()).append("#").append(MethodName);
+                    sb.append("\n").append(entry.getKey().getClassReference().getName()).append("#").append(MethodName).append("(").append(entry.getKey().getDesc()).append(")");
                     for(MethodReference.Handle TargetMethod: entry.getValue()){
                         String TargetMethodName = TargetMethod.getName();
                         if (TargetMethodName == null) {
                             sb.append("\n");
                         } else {
-                            sb.append("\n\t").append(TargetMethod.getClassReference().getName()).append("#").append(TargetMethodName);
+                            sb.append("\n\t").append(TargetMethod.getClassReference().getName()).append("#").append(TargetMethodName).append("(").append(TargetMethod.getDesc()).append(")");
                         }
                     }
                 }
@@ -131,4 +132,20 @@ public class WriteUtil {
             throw new RuntimeException(e);
         }
     }
+
+    public static void SaveSinkRule(Path filePath, List<MethodReference.Handle> SinkList){
+        try (BufferedWriter writer = Files.newWriter(filePath.toFile(), StandardCharsets.UTF_8)) {
+            StringBuilder sb = new StringBuilder();
+            for (MethodReference.Handle Sink: SinkList) {
+                String MethodName = Sink.getName();
+                String ClassName = Sink.getClassReference().getName();
+                String desc = Sink.getDesc();
+                sb.append(ClassName).append(" ").append(MethodName).append(" ").append(desc).append(" sinkName 1 1").append("\n");
+            }
+            writer.write(String.valueOf(sb));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
